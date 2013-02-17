@@ -1,0 +1,21 @@
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Digestif</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css" media="screen" />
+  <link href="http://fonts.googleapis.com/css?family=Lusitana:400,700" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<div id="sitewrap">
+<h1><a href="/">Digestif</a></h1>
+<h2>Subtitle</h2>
+<div id="content">
+{% block body %}{% endblock %}
+</div>
+<div id="footnotes">Questions? <a href="mailto:james@jamesclarke.net">james@jamesclarke.net</a></div>
+</div>
+</body>
+</html>
