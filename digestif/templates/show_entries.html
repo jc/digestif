@@ -2,8 +2,12 @@
 {% block body %}
 {% for entry in entries %}
   <div class="image">
-    <img src="{{ entry.main_src }}" />
-    <p class="caption">{{ entry.caption|safe }}</p>
+    <div class="photo">
+      <img src="{{ entry.main_src }}" />
+    </div>
+    <div class="caption">
+      <p>{{ entry.caption|safe }}</p>
+    </div>
   </div>
 {% endfor %}
 {% endblock %}
