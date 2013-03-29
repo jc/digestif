@@ -1,18 +1,27 @@
+import re
+from datetime import datetime
+from datetime import timedelta
+
 from flask import session, request, g, redirect, url_for, abort, render_template, flash
 from flask_oauth import OAuthException
+
+from jinja2 import evalcontextfilter, Markup
+
+import premailer 
 
 from digestif import app
 from digestif import flickr_oauth
 from digestif.models import Entry
-from digestif.models import Publisher, Publication
+from digestif.models import Publisher, Publication, FlickrPhoto
 from digestif import db
 from digestif import models
+from digestif import processes
 from digestif.constants import *
 
 @flickr_oauth.tokengetter
 def get_flickr_token(token=None):
     #pass return (token, secret) or None
-    return None
+    return token
 
 @app.route('/subscribe/flickr')
 def login():
@@ -35,6 +44,7 @@ def oauth_flickr_authorized(resp):
         pub = Publication(oauth_token=resp["oauth_token"], oauth_token_secret=resp["oauth_token_secret"],
                           publisher_id=publisher.id, remote_id=remote_id, service=FLICKR)
         publisher.publications.append(pub)
+        pub.last_updated = datetime.utcnow()
         db.session.add(publisher)
         db.session.add(pub)
         print "created %s" % publisher
@@ -61,11 +71,6 @@ def subscribe(externalid):
     return "Want to subscribe to %s?" % (pub.remote_id)
 
 @app.route("/")
-def show_entries():
-    entries = [Entry({"main_src" : "http://michelleandjames.net/p/hjc1.jpg", "caption" : "Hello"})] * 3
-    return render_template("show_entries.html", entries=entries)
-
-@app.route("/index")
 def index():
     return "Hello World!"
 
@@ -74,10 +79,59 @@ def digest(username, previous, frequency, today):
     previous_dt = datetime.strptime(previous, "%Y%m%d")
     today_dt = datetime.strptime(today, "%Y%m%d")
     frequency_td = timedelta(days=int(frequency))
-    entries = []
-    for entry in database:
-        if entry.date >= previous_dt and entry.date <= today_dt:
-            entries.append(entry)
     if today_dt - previous_dt < frequency_td:
-        entries = []
-    return render_template("show_entries.html", entries=entries)
+        return "Too soon since last check!"
+    entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > previous_dt,
+                                       FlickrPhoto.date_uploaded <= today_dt,
+                                       FlickrPhoto.publication_id == username).order_by(FlickrPhoto.date_uploaded).all()
+    pub = Publication.query.filter(Publication.id == username).first()
+    meta = {"username" : username, "previous" : previous,
+            "frequency" : frequency, "today" : today,
+            "publication" : pub }
+    return render_template("show_entries.html", entries=entries, email=None, meta=meta)
+
+@app.route("/email/<username>/<previous>/<frequency>/<today>")
+def email_digest(username, previous, frequency, today):
+    previous_dt = datetime.strptime(previous, "%Y%m%d")
+    today_dt = datetime.strptime(today, "%Y%m%d")
+    frequency_td = timedelta(days=int(frequency))
+    if today_dt - previous_dt < frequency_td:
+        return "Too soon since last check!"
+    entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > previous_dt,
+                                       FlickrPhoto.date_uploaded <= today_dt,
+                                       FlickrPhoto.publication_id == username).order_by(FlickrPhoto.date_uploaded).all()
+    pub = Publication.query.filter(Publication.id == username).first()
+    meta = {"username" : username, "previous" : previous,
+            "frequency" : frequency, "today" : today,
+            "publication" : pub }
+
+    return premailer.transform(render_template("show_entries.html", entries=entries, meta=meta, email=True))
+
+@app.template_filter("imgurl")
+def imgurl_filter(value, meta=None, email=False):
+    if email:
+        return "http://farm%s.staticflickr.com/%s/%s_%s.jpg" % (value.farm, value.server, value.remote_id, value.secret)
+    size = "z"
+    if value.date_uploaded >= datetime(2012, 03, 01):
+        size = "c"
+    return "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg" % (value.farm, value.server, value.remote_id, value.secret, size)
+
+@app.template_filter("permalink")
+def permalink_filter(value, meta=None, email=False):
+    if email:
+        return "http://localhost:5000/view/%s/%s/%s/%s" % (meta["username"], meta["previous"], 
+                                                           meta["frequency"], meta["today"])
+    return "http://www.flickr.com/photos/%s/%s" % (meta["publication"].remote_id, value.remote_id)
+
+@app.template_filter()
+@evalcontextfilter
+def nl2br(eval_ctx, value):
+    """ Converts new line to br """
+    result = re.sub(r'\r\n|\r|\n', '<br/>\n', value)
+    if eval_ctx.autoescape:
+        result = Markup(result)
+    return result
+
+@app.template_filter("datetime")
+def format_datetime(value):
+    return value.strftime("%A %d %B %Y")

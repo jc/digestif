@@ -9,13 +9,13 @@ html, body, div, span, ol, ul, li, lh {
 }
 
 body {
-    background: url('http://michelleandjames.net/textureback.jpg') #000;
-    color: #222;
-    line-height: 1.6;
-    font-family: 'Lusitana', Georgia, serif;
-    font-size: 100%;
-    text-align: center;
+    color: #202020;
+    font-family: Georgia, Palatino, 'Palatino Linotype', Times, 'Times New Roman', serif;
+    font-size: 1em;
 }
+
+h1, h3 {font-family:Futura, 'Century Gothic', AppleGothic, sans-serif;}
+
 
 a, a:link, a:visited, a:hover {
     color: #0052A3;
@@ -25,33 +25,30 @@ a:hover {
     text-decoration: underline;
 }
 
-h1 a:hover {
+#header {
+    margin: 1em 0;
+    padding-top: 0.5em;
+    border-bottom: solid 1px #333;
+}
+
+h1 a:link, h1 a:visited, h1 a:hover, h1 a {
+    color: #000;
     text-decoration: none;
 }
 
 
-h1 {
-    margin: 0.5em 0 0 0;
-    font-size: 320%;
-    padding: 0.4em 0 0 0; 
+#header h1 {
+    margin: 0;
+    padding: 0;
+    font-size: 2em;
     text-shadow: none;
 	line-height: 1.2em;
-}
-
-h2 {
-    margin: 0;
-    font-weight: normal;
-    text-shadow: none;
-    font-size: 140%;
-}
-
-h1 + h2 {
-     margin-top: 0em; 
-}
-
-h3 {
-    padding-top: 0.5em;
-    font-size: 130%;
+	font-weight:normal;
+	font-style:italic;
+    font-family: Georgia, "Times New Roman", Times, serif;
+    text-shadow: #ccc 2px 2px 2px;
+    letter-spacing: -.05em;
+    word-spacing: -1px;
 }
 
 #sitewrap {
@@ -63,46 +60,53 @@ h3 {
 
 #content {
     text-align: left;
-    margin-top: 2em;
-    padding-top: 1em;
-    border-top: 1px solid #333;
 }
 
 #footnotes {
-	margin-top: 3em;
+	margin-top: 1em;
     padding-top: 1em;
     border-top: 1px solid #333;
-    font-size: 110%;
     padding-bottom: 3em;
     margin-bottom: 2em;
 }
 
 .image {
+    margin-bottom: 2em;
+}
+
+.image img {
+    border: 0;
+}
+
+.photo {
     text-align: center;
-}
-
-.image img {
-    padding: 3px;
-    /*min-height: 375px;*/
-    /*width: 500px;*/
-    cursor: pointer;
-    background: #dfdfdf;
-    -webkit-box-shadow: 3px 4px 8px #111;
-    -moz-box-shadow: 3px 4px 8px #111;
-    box-shadow: 3px 4px 8px #111;
-}
-
-.image img {
     margin-bottom: 1em;
 }
 
-p { font-size: 120%; }
+.image .dateline {
+    text-align:right;
+}
 
-p.caption {
-    font-size: 90%;
-    margin-top: 4px;
-    margin-bottom: 2em;
-    margin-left: 6px;
-    line-height: 1.1em;
+.dateline p {
+    margin:0;
+    margin-bottom: 2px;
+    padding:0;
+    font-size:70%;
+}
+
+.caption {
+    margin-left: 0.5em;
+    margin-top: 0.25em;
+}
+.caption h2 {
+    font-size: 1em;
+    padding: 0;
+    margin: 0;
+}
+
+.caption p {
+    font-size: 1em;
+    margin: 0;
+    line-height: 1.2em;
 }
 

@@ -1,3 +1,2 @@
-from digestif import app, load_json
-load_json("data.json")
+from digestif import app
 app.run(debug=True)

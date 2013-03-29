@@ -1,12 +1,30 @@
 {% extends "layout.html" %}
+{% block head %}
+{% if email %}
+  <style type="text/css" media="screen">
+    #sitewrap {
+    width: 500px;
+    }
+    
+  </style>
+{% endif %}
+{% endblock %}
+
 {% block body %}
+
 {% for entry in entries %}
   <div class="image">
+    <div class="dateline"><p>{{entry.date_taken|datetime}}</p></div>
     <div class="photo">
-      <img src="{{ entry.main_src }}" />
+      <a href="{{ entry|permalink(email=email, meta=meta) }}"><img src="{{ entry|imgurl(meta=meta, email=email) }}" /></a>
     </div>
     <div class="caption">
-      <p>{{ entry.caption|safe }}</p>
+      {% if entry.title %}
+        <h2>{{ entry.title|safe }}</h2>
+      {% endif %}
+      {% if entry.description %}
+        <p>{{ entry.description|nl2br|safe }}</p>
+      {% endif %}
     </div>
   </div>
 {% endfor %}
