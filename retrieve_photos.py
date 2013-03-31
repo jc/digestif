@@ -2,7 +2,7 @@
 import sys
 from datetime import datetime
 
-from digestif.models import Publication
+from digestif.models import Stream
 from digestif import processes
 
 if __name__ == "__main__":
@@ -10,5 +10,5 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         since = datetime.strptime(sys.argv[1], "%Y%m%d")
             
-    for pub in Publication.query.all():
-        processes.retrieve_photos(pub, since=since)
+    for stream in Stream.query.all():
+        processes.retrieve_photos(stream, since=since)

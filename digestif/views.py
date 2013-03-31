@@ -11,10 +11,8 @@ import premailer
 
 from digestif import app
 from digestif import flickr_oauth
-from digestif.models import Entry
-from digestif.models import Publisher, Publication, FlickrPhoto
+from digestif.models import User, Stream, FlickrPhoto
 from digestif import db
-from digestif import models
 from digestif import processes
 from digestif.constants import *
 
@@ -37,27 +35,22 @@ def oauth_flickr_authorized(resp):
         return redirect(next_url)
 
     remote_id = resp["user_nsid"]
-    pub = Publication.query.filter_by(remote_id=remote_id).first()
+    stream = Stream.query.filter_by(foreign_key=remote_id).first()
 
-    if not pub:
-        publisher = Publisher()
-        pub = Publication(oauth_token=resp["oauth_token"], oauth_token_secret=resp["oauth_token_secret"],
-                          publisher_id=publisher.id, remote_id=remote_id, service=FLICKR)
-        publisher.publications.append(pub)
-        pub.last_updated = datetime.utcnow()
-        db.session.add(publisher)
-        db.session.add(pub)
-        print "created %s" % publisher
-        print "created %s" % pub
-    if pub.oauth_token != resp["oauth_token"] or pub.oauth_token_secret != resp["oauth_token_secret"]:
-        print "updating %s" % pub
-        pub.oauth_token = resp["oauth_token"]
-        pub.oauth_token_secret = resp["oauth_token_secret"]
-        db.session.add(pub)
-        print "changed to %s" % pub
+    if not stream:
+        user = User()
+        stream = Stream(oauth_token=resp["oauth_token"], 
+                        oauth_token_secret=resp["oauth_token_secret"],
+                        user_id=user.id, foreign_key=remote_id, service=FLICKR)
+        stream.last_checked = datetime.utcnow()
+        db.session.add(user)
+        db.session.add(stream)
+    if stream.oauth_token != resp["oauth_token"] or stream.oauth_token_secret != resp["oauth_token_secret"]:
+        stream.oauth_token = resp["oauth_token"]
+        stream.oauth_token_secret = resp["oauth_token_secret"]
+        db.session.add(stream)
     db.session.commit()
-    flash('You were signed in as %s' % resp['username'])
-    return redirect(url_for('subscribe', externalid=pub.id))
+    return redirect(url_for('subscribe', externalid=stream.id))
 
 #@app.errorhandler(OAuthException)
 def handle_oauth_exception(error):
@@ -65,10 +58,10 @@ def handle_oauth_exception(error):
 
 @app.route("/subscribe/<externalid>")
 def subscribe(externalid):
-    pub = Publication.query.filter_by(id=externalid).first()
-    if not pub:
-        return "Unknown digest"
-    return "Want to subscribe to %s?" % (pub.remote_id)
+    stream = Stream.query.filter_by(id=externalid).first()
+    if not stream:
+        return "Unknown stream"
+    return "Want to subscribe to %s?" % (stream.foreign_key)
 
 @app.route("/")
 def index():
@@ -83,11 +76,11 @@ def digest(username, previous, frequency, today):
         return "Too soon since last check!"
     entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > previous_dt,
                                        FlickrPhoto.date_uploaded <= today_dt,
-                                       FlickrPhoto.publication_id == username).order_by(FlickrPhoto.date_uploaded).all()
-    pub = Publication.query.filter(Publication.id == username).first()
+                                       FlickrPhoto.stream_id == username).order_by(FlickrPhoto.date_uploaded).all()
+    stream = Stream.query.filter(Stream.id == username).first()
     meta = {"username" : username, "previous" : previous,
             "frequency" : frequency, "today" : today,
-            "publication" : pub }
+            "stream" : stream }
     return render_template("show_entries.html", entries=entries, email=None, meta=meta)
 
 @app.route("/email/<username>/<previous>/<frequency>/<today>")
@@ -99,29 +92,29 @@ def email_digest(username, previous, frequency, today):
         return "Too soon since last check!"
     entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > previous_dt,
                                        FlickrPhoto.date_uploaded <= today_dt,
-                                       FlickrPhoto.publication_id == username).order_by(FlickrPhoto.date_uploaded).all()
-    pub = Publication.query.filter(Publication.id == username).first()
+                                       FlickrPhoto.stream_id == username).order_by(FlickrPhoto.date_uploaded).all()
+    stream = Stream.query.filter(Stream.id == username).first()
     meta = {"username" : username, "previous" : previous,
             "frequency" : frequency, "today" : today,
-            "publication" : pub }
+            "stream" : stream }
 
     return premailer.transform(render_template("show_entries.html", entries=entries, meta=meta, email=True))
 
 @app.template_filter("imgurl")
 def imgurl_filter(value, meta=None, email=False):
     if email:
-        return "http://farm%s.staticflickr.com/%s/%s_%s.jpg" % (value.farm, value.server, value.remote_id, value.secret)
+        return "http://farm%s.staticflickr.com/%s/%s_%s.jpg" % (value.farm, value.server, value.foreign_key, value.secret)
     size = "z"
     if value.date_uploaded >= datetime(2012, 03, 01):
         size = "c"
-    return "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg" % (value.farm, value.server, value.remote_id, value.secret, size)
+    return "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg" % (value.farm, value.server, value.foreign_key, value.secret, size)
 
 @app.template_filter("permalink")
 def permalink_filter(value, meta=None, email=False):
     if email:
         return "http://localhost:5000/view/%s/%s/%s/%s" % (meta["username"], meta["previous"], 
                                                            meta["frequency"], meta["today"])
-    return "http://www.flickr.com/photos/%s/%s" % (meta["publication"].remote_id, value.remote_id)
+    return "http://www.flickr.com/photos/%s/%s" % (meta["stream"].foreign_key, value.foreign_key)
 
 @app.template_filter()
 @evalcontextfilter

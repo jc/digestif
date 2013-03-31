@@ -1,54 +1,60 @@
 from datetime import datetime
 
 from digestif import flickr_oauth as flickr
-from digestif.models import Publication, FlickrPhoto, ExternalProcess
+from digestif.models import Stream, FlickrPhoto
 from digestif import db
 
 FLICKR_DATE = "%Y-%m-%d %H:%M:%S"
 
-def retrieve_photos(pub, since=None):
+def retrieve_photos(stream, since=None):
+    # if since date not specified we'll default to last time we checked
+    # the stream
     if not since:
-        since = pub.last_updated
+        since = stream.last_checked
     now = datetime.utcnow()
-    token = (pub.oauth_token, pub.oauth_token_secret)
+    token = (stream.oauth_token, stream.oauth_token_secret)
+    # build the query
     query = {"method" : "flickr.people.getPhotos",
-             "user_id" : pub.remote_id,
+             "user_id" : stream.foreign_key,
              "extras" : "date_upload, date_taken, description",
              "format" : "json",
              "nojsoncallback" : 1,
              "min_upload_date" :  (since - datetime(1970, 1, 1)).total_seconds()}
-        
-    print query
+    # make the call and get the response
     resp = flickr.get('', data=query, token=token)
+    
     successful = False
     page = None
     pages = None
+
+    # on successful response get the paging data
     if resp.status == 200:
         page = int(resp.data["photos"]["page"])
         pages = int(resp.data["photos"]["pages"])
-        print page, pages
+
+    # do the page dance!
     while resp.status == 200 and page <= pages:       
         for photo in resp.data["photos"]["photo"]:
-            flickrphoto = new_flickrphoto(photo, pub)
+            flickrphoto = create_flickr_photo(photo, stream)
         query["page"] = page + 1
+        # dance dance dance
         resp = flickr.get('', data=query, token=token)
         if resp.status == 200:
             page = int(resp.data["photos"]["page"])
             pages = int(resp.data["photos"]["pages"])
-            print page, pages
         successful = True
+
     if resp.status != 200:
         successful = False
+        # TODO log a problem
         print "Response code: %s\n data:%s" % (resp.status, resp.data)
-    pub.last_updated = now
-    ext = ExternalProcess(pub_id=pub.id, date=now, successful=successful, msg=resp.status)
-    pub.processes.append(ext)
-    db.session.add(ext)
-    db.session.add(pub)
+    
+    stream.last_checked = now
+    db.session.add(stream)
     db.session.commit()
     return resp.status
     
-def new_flickrphoto(photo, pub):
+def create_flickr_photo(photo, stream):
     id = photo["id"]
     farm = photo["farm"]
     server = photo["server"]
@@ -58,22 +64,21 @@ def new_flickrphoto(photo, pub):
     title = photo["title"]
     description = photo["description"]["_content"]
     flickrphoto = None
-    flickrphoto = FlickrPhoto.query.filter_by(remote_id=id).first()
+    flickrphoto = FlickrPhoto.query.filter_by(foreign_key=id).first()
     video = False
     if "media" in photo and photo["media"] == "video":
         video = True
     if not flickrphoto:
-        flickrphoto = FlickrPhoto(remote_id=id, publication_id=pub.id,
+        flickrphoto = FlickrPhoto(foreign_key=id, stream_id=stream.id,
                                   farm=farm, server=server, secret=secret,
                                   title=title, description=description,
                                   date_uploaded=date_uploaded,
                                   date_taken=date_taken, video=video)
         db.session.add(flickrphoto)
-        print "adding", flickrphoto
+        db.session.commit()
     else:
+        # already present
         print flickrphoto, "already present"
-    db.session.commit()
-    
     return flickrphoto
                               
                
