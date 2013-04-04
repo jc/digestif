@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import short_url
 
 from digestif import flickr_oauth as flickr
-from digestif.models import Stream, FlickrPhoto
+from digestif.models import Stream, FlickrPhoto, Digest
 from digestif import db
 
 FLICKR_DATE = "%Y-%m-%d %H:%M:%S"
@@ -82,3 +83,19 @@ def create_flickr_photo(photo, stream):
     return flickrphoto
                               
                
+def create_digest(subscription):
+    if not subscription.active:
+        return None
+    previous_dt = subscription.last_digest
+    today_dt = datetime.now()
+    frequency_td = timedelta(days=subscription.frequency)
+    if today_dt - previous_dt >= frequency_td:
+        digest = Digest(subscription_id=subscription.id, end_date=today_dt,
+                        start_date=previous_dt)
+        db.session.add(digest)
+        subscription.last_digest = today_dt
+        db.session.add(subscription)
+        db.session.commit()
+    print digest.id
+    print short_url.encode_url(digest.id)
+    return digest

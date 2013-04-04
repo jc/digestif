@@ -30,6 +30,7 @@ class Subscription(db.Model):
     stream_id = db.Column(db.Integer, db.ForeignKey("stream.id"))
     frequency = db.Column(db.Integer, nullable=False)
     last_digest = db.Column(db.DateTime)
+    active = db.Column(db.Boolean, default=True)
 
 class Digest(db.Model):
     id = db.Column(db.Integer, primary_key=True)

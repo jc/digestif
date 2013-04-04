@@ -8,13 +8,16 @@ from flask_oauth import OAuthException
 from jinja2 import evalcontextfilter, Markup
 
 import premailer 
+import short_url
 
 from digestif import app
 from digestif import flickr_oauth
-from digestif.models import User, Stream, FlickrPhoto
+from digestif.models import User, Stream, FlickrPhoto, Subscription, Digest
 from digestif import db
 from digestif import processes
 from digestif.constants import *
+
+
 
 @flickr_oauth.tokengetter
 def get_flickr_token(token=None):
@@ -56,19 +59,50 @@ def oauth_flickr_authorized(resp):
 def handle_oauth_exception(error):
     return "<p>%s</p><p>%s</p><p>%s</p>" % (error.message, error.type, error.data)
 
-@app.route("/subscribe/<externalid>")
-def subscribe(externalid):
+@app.route("/subscribe/<externalid>/<email>")
+def subscribe(externalid, email):
     stream = Stream.query.filter_by(id=externalid).first()
     if not stream:
         return "Unknown stream"
-    return "Want to subscribe to %s?" % (stream.foreign_key)
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        user = User(email=email)
+        db.session.add(user)
+        db.session.commit()
+        print "created user", user.id
+    subscription = Subscription.query.filter(Subscription.user_id == user.id, 
+                              Subscription.stream_id == stream.id).first()
+    if not subscription:
+        subscription = Subscription(user_id=user.id, stream_id=stream.id,
+                                    frequency=4, last_digest=datetime(2010, 01, 01))
+        db.session.add(subscription)
+        db.session.commit()
+        print "created subscription", subscription.id
+    db.session.commit()
+    return "subscribed to %s?" % (stream.foreign_key)
 
 @app.route("/")
 def index():
     return "Hello World!"
 
+@app.route("/digest/<digest_encoded>")
+def display_digest(digest_encoded):
+    digest_id = short_url.decode_url(digest_encoded)
+    digest = Digest.query.filter_by(id=digest_id).first()
+    if not digest:
+        return "Unknown digest"
+    subscription = Subscription.query.filter_by(id=digest.subscription_id).first()
+    if not subscription:
+        return "Unknown subscription"
+    stream = Stream.query.filter_by(id=subscription.stream_id).first()
+    entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > digest.start_date,
+                                       FlickrPhoto.date_uploaded <= digest.end_date,
+                                       FlickrPhoto.stream_id == stream.id).order_by(FlickrPhoto.date_uploaded).all()
+    meta = {"stream" : stream, "digest_encoded" : digest_encoded}
+    return render_template("show_entries.html", entries=entries, email=None, meta=meta)
+
 @app.route("/view/<username>/<previous>/<frequency>/<today>")
-def digest(username, previous, frequency, today):
+def digest_dt(username, previous, frequency, today):
     previous_dt = datetime.strptime(previous, "%Y%m%d")
     today_dt = datetime.strptime(today, "%Y%m%d")
     frequency_td = timedelta(days=int(frequency))
@@ -112,8 +146,7 @@ def imgurl_filter(value, meta=None, email=False):
 @app.template_filter("permalink")
 def permalink_filter(value, meta=None, email=False):
     if email:
-        return "http://localhost:5000/view/%s/%s/%s/%s" % (meta["username"], meta["previous"], 
-                                                           meta["frequency"], meta["today"])
+        return "http://localhost:5000/digest/%s" % (meta["digest_encoded"])
     return "http://www.flickr.com/photos/%s/%s" % (meta["stream"].foreign_key, value.foreign_key)
 
 @app.template_filter()

@@ -6,6 +6,8 @@ from flask_oauth import OAuth
 
 from flask.ext.sqlalchemy import SQLAlchemy
 
+from hashids import hashids
+
 # configuration
 DEBUG = True
 SECRET_KEY = 'development key'
@@ -17,7 +19,6 @@ app.config.from_object(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/Jclarke/tmp/test.db'
 db = SQLAlchemy(app)
 
-database = []
 
 oauth = OAuth()
 flickr_oauth = oauth.remote_app('flickr',
