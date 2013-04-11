@@ -19,6 +19,8 @@ app.config.from_object(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/Jclarke/tmp/test.db'
 db = SQLAlchemy(app)
 
+hash_gen = hashids("twenty five people ate in holland")
+
 
 oauth = OAuth()
 flickr_oauth = oauth.remote_app('flickr',

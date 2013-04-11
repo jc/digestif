@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<form method="POST" action="/register/flickr">
+{{ form.email.label }} {{ form.email() }}
+{{ form.hidden_tag() }}
+<input type="submit" value="submit" />
+</form>
+
+{% endblock %}

@@ -1,9 +1,13 @@
 from datetime import datetime, timedelta
-import short_url
+
+from flask import render_template
+import premailer
+import sendgrid
 
 from digestif import flickr_oauth as flickr
-from digestif.models import Stream, FlickrPhoto, Digest
-from digestif import db
+from digestif.models import Stream, FlickrPhoto, Digest, Subscription
+from digestif import db, hash_gen
+from digestif.views import display_digest
 
 FLICKR_DATE = "%Y-%m-%d %H:%M:%S"
 
@@ -76,6 +80,7 @@ def create_flickr_photo(photo, stream):
                                   date_uploaded=date_uploaded,
                                   date_taken=date_taken, video=video)
         db.session.add(flickrphoto)
+        stream.last_updated = datetime.now()
         db.session.commit()
     else:
         # already present
@@ -83,12 +88,16 @@ def create_flickr_photo(photo, stream):
     return flickrphoto
                               
                
-def create_digest(subscription):
+def create_digest(subscription, previous_dt=None, today_dt=None):
     if not subscription.active:
         return None
-    previous_dt = subscription.last_digest
-    today_dt = datetime.now()
+    if not previous_dt:
+        previous_dt = subscription.last_digest
+    if not today_dt:
+        today_dt = datetime.now()
     frequency_td = timedelta(days=subscription.frequency)
+    print frequency_td, today_dt - previous_dt
+    digest = None
     if today_dt - previous_dt >= frequency_td:
         digest = Digest(subscription_id=subscription.id, end_date=today_dt,
                         start_date=previous_dt)
@@ -96,6 +105,26 @@ def create_digest(subscription):
         subscription.last_digest = today_dt
         db.session.add(subscription)
         db.session.commit()
-    print digest.id
-    print short_url.encode_url(digest.id)
     return digest
+
+def send_digest(digest, env):
+    digest_encoded = hash_gen.encrypt(digest.id)
+    subscription = Subscription.query.filter_by(id=digest.subscription_id).first()
+    stream = Stream.query.filter_by(id=subscription.stream_id).first()
+    entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > digest.start_date,
+                                       FlickrPhoto.date_uploaded <= digest.end_date,
+                                       FlickrPhoto.stream_id == stream.id).order_by(FlickrPhoto.date_taken).all()
+    meta = {"stream" : stream, "digest_encoded" : digest_encoded}
+    template = env.get_template("show_entries.html")
+    html = template.render(entries=entries, meta=meta, email=True)
+    html_email = premailer.transform(html)
+    s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)
+    message = sendgrid.Message("james@digestif.me", "Digestif", 
+                               "View this digestif at http://digestif.me/digest/%s" % digest_encoded,
+                               html_email)
+    message.add_to("james@jamesclarke.net")
+    s.web.send(message)
+
+
+
+
