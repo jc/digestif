@@ -24,6 +24,10 @@ def get_flickr_token(token=None):
     #pass return (token, secret) or None
     return token
 
+#@app.errorhandler(OAuthException)
+def handle_oauth_exception(error):
+    return "<p>%s</p><p>%s</p><p>%s</p>" % (error.message, error.type, error.data)
+
 @app.route('/signup/flickr')
 def signup_flickr():
     return flickr_oauth.authorize(callback=url_for('oauth_flickr_authorized', \
@@ -39,40 +43,36 @@ def oauth_flickr_authorized(resp):
         email = form.email.data
         user = make_user(email)
         stream = make_stream(form.remote.data, user,
-                                    form.ot.data, form.ots.data,
-                                    last_checked=datetime.utcnow())
+                             form.ot.data, form.ots.data,
+                             last_checked=datetime.utcnow())
+        #TODO welcome screen next?
         return "Woohoo!"
 
     if resp is None and not form.is_submitted():
-        return redirect(next_url)
+        return redirect(next_url) # bail from register
 
     if resp is not None:
         form.remote.data = resp["user_nsid"] 
         form.ots.data = resp["oauth_token_secret"]
         form.ot.data = resp["oauth_token"]
-
     elif not form.is_submitted():
-        return redirect(next_url)
+        return redirect(next_url) # bail from register
 
     stream = Stream.query.filter_by(foreign_key=form.remote.data).first()
     if not stream:
-        return render_template("new_user.html", form=form)        
+        return render_template("new_user.html", form=form) # new user sign-up
     elif stream.oauth_token != form.ot.data and stream.oauth_token_secret != form.ots.data:
         stream.oauth_token = form.ot.data
         stream.oauth_token_secret = form.ots.data
         db.session.commit()
         print "stream updated", stream.id, stream.foreign_key
-        return redirect(next_url)    
+        return redirect(next_url) # continue to index
     else:
-        return redirect(next_url)
+        return redirect(next_url) # continue to index
 
-#@app.errorhandler(OAuthException)
-def handle_oauth_exception(error):
-    return "<p>%s</p><p>%s</p><p>%s</p>" % (error.message, error.type, error.data)
-
-@app.route("/subscribe/<stream_encoded>", methods=["GET", "POST"])
+@app.route("/subscribe/<stream_encoded>", methods=("GET", "POST"))
 def subscribe(stream_encoded):
-    values = hash_gen.decrypt(str(stream_encoded))
+    values = hash_gen.decrypt(str(stream_encoded)) #values stores user_id, stream_id
     if values:
         user_id, stream_id = values
     else:
@@ -81,6 +81,7 @@ def subscribe(stream_encoded):
     stream = Stream.query.filter_by(id=stream_id).first_or_404()
 
     if stream.user_id != user_id:
+        # TODO handle error case.
         return "Mismatching user and stream!"
 
     subscribe_form = SubscribeForm()
@@ -88,15 +89,15 @@ def subscribe(stream_encoded):
     if subscribe_form.validate_on_submit():
         email = subscribe_form.email.data;
         frequency = int(subscribe_form.frequency.data)
-        # todo validate!
         user = make_user(email)
         subscription = make_subscription(stream, user, frequency)
-        # TODO done!
+        # TODO page to describe subscription
         return "Success"
     else:
         return render_template("subscribe.html", form=subscribe_form, stream_encoded=stream_encoded)
 
 
+# TODO index
 @app.route("/")
 def index():
     data = ["<pre><code>"]
@@ -132,22 +133,12 @@ def display_digest(digest_encoded):
     return render_template("show_entries.html", entries=entries, email=None, meta=meta)
 
 
-@app.route("/email/<username>/<previous>/<frequency>/<today>")
-def email_digest(username, previous, frequency, today):
-    previous_dt = datetime.strptime(previous, "%Y%m%d")
-    today_dt = datetime.strptime(today, "%Y%m%d")
-    frequency_td = timedelta(days=int(frequency))
-    if today_dt - previous_dt < frequency_td:
-        return "Too soon since last check!"
-    entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > previous_dt,
-                                       FlickrPhoto.date_uploaded <= today_dt,
-                                       FlickrPhoto.stream_id == username).order_by(FlickrPhoto.date_uploaded).all()
-    stream = Stream.query.filter(Stream.id == username).first()
-    meta = {"username" : username, "previous" : previous,
-            "frequency" : frequency, "today" : today,
-            "stream" : stream }
-
-    return premailer.transform(render_template("show_entries.html", entries=entries, meta=meta, email=True))
+#
+#
+#
+# -------------- template filters -----------------
+#
+#
 
 @app.template_filter("imgurl")
 def imgurl_filter(value, meta=None, email=False):
