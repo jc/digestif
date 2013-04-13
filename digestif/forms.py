@@ -1,11 +1,8 @@
 from flask.ext.wtf import Form
 from wtforms import TextField, validators, HiddenField, SelectField
 
-class RegisterStream(Form):
-    email = TextField("Email", [validators.Email()])
-    ot = HiddenField("ot")
-    ots = HiddenField("ots")
-    remote = HiddenField("remote")
+class SignUpStream(Form):
+    email = TextField("Email address", [validators.Email()])
 
 class SubscribeForm(Form):
     email = TextField("Email", [validators.Email()])

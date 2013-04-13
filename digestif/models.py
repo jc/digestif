@@ -64,9 +64,14 @@ class FlickrPhoto(Base, db.Model):
     video = db.Column(db.Boolean)
     
 
-def make_user(email):
-    """ Make or get usr by email address """
-    user = User.query.filter_by(email=email).first()
+def make_user(email, user=None):
+    """ Make or get user by email address """
+    if not user:
+        user = User.query.filter_by(email=email).first()
+    else:
+        user.email = email
+        db.session.commit()
+        print "updated user", user.id, user.email
     if not user:
         user = User(email=email)
         db.session.add(user)
