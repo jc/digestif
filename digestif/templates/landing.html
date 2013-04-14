@@ -5,14 +5,33 @@
 <p>Digestif converts your photostream into an email digest delivered to your
 friends and family as frequently (or infrequently) as they decide.</p>
 
-<p>To get started tell us your email address and if you use Flickr or
-Instagram.</p>
+<p>To get started tell us your email address and select Flickr or
+Instagram. And we'll generate a subscription form.</p>
 
-<form method="POST" action="/signup/flickr">
-{{ form.email.label }} {{ form.email() }}
+{% if form.errors %}
+    <ul class="errors">
+        {% for field_name, field_errors in form.errors|dictsort if field_errors %}
+            {% for error in field_errors %}
+                <li>{{ form[field_name].label }}: {{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+    </ul>
+{% endif %}
+<div class="narrow">
+<form id="create" method="POST" action="/">
+{{ form.email(placeholder="Your email address") }}
+<span service="flickr" class="service social inactive">&#62211;</span> <span service="instagram" class="service social inactive">&#62253;</span> <button>Create</button>
 {{ form.hidden_tag() }}
-<input type="submit" value="submit" />
 </form>
+</div>
+<script>
+    $(".service").click(function () {
+       $("#stream").attr("value", $(this).attr("service"));
+       $(".service").removeClass("active").addClass("inactive");
+       $(this).addClass("active").removeClass("inactive");
+    //$("#create").submit();
+    });
+</script>
 
 
 {% endblock %}

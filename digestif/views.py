@@ -15,9 +15,9 @@ from digestif.models import User, Stream, FlickrPhoto, Subscription, Digest
 from digestif import db
 from digestif.constants import *
 from digestif.models import make_user, make_subscription, make_stream
-from digestif.forms import RegisterStream, SubscribeForm, SignUpStream
+from digestif.forms import SubscribeForm, SignUpStream
 from digestif import hash_gen
-
+from digestif import processes
 
 @flickr_oauth.tokengetter
 def get_flickr_token(token=None):
@@ -31,8 +31,6 @@ def handle_oauth_exception(error):
 @app.route('/new/flickr')
 @flickr_oauth.authorized_handler
 def handle_flickr_authorization(resp):
-    form = SignUpStream(formdata=request.args, csrf_enabled=False)
-    
     if resp is None:
         print "no response"
         return url_for("landing")
@@ -46,9 +44,8 @@ def handle_flickr_authorization(resp):
         print "no flickr auth", flickr_id, oauth_token, oauth_token_secret
         return redirect(url_for("landing"))
     
-    print form.validate()
-    if form.validate():
-        email = form.email.data
+    email = request.args.get("email")
+    if email:
         user = None
         stream = Stream.query.filter_by(foreign_key=flickr_id).first()
         if stream:
@@ -56,14 +53,7 @@ def handle_flickr_authorization(resp):
         user = make_user(email, user=user)
         stream = make_stream(flickr_id, user, oauth_token, oauth_token_secret,
                              last_checked=datetime.utcnow())
-        return "Woohoo!"
-    return redirect(url_for("landing"))
-
-@app.route('/signup/flickr', methods=("GET", "POST"))
-def signup_flickr():
-    form = SignUpStream()
-    if form.validate_on_submit():
-        return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', email=form.email.data))
+        return redirect(url_for("subscribe", stream_encoded=hash_gen.encrypt(stream.user_id, stream.id)))
     return redirect(url_for("landing"))
 
 @app.route("/subscribe/<stream_encoded>", methods=("GET", "POST"))
@@ -94,12 +84,21 @@ def subscribe(stream_encoded):
         # TODO page to describe subscription
         return "Success"
     else:
-        return render_template("subscribe.html", form=subscribe_form, stream_encoded=stream_encoded)
+        return render_template("subscribe.html", 
+                               form=subscribe_form, 
+                               stream_encoded=stream_encoded, 
+                               digestname=processes.metadata(stream),
+                               perma="http://www.flickr.com/photos/%s" % stream.foreign_key)
 
 
-@app.route("/")
+@app.route("/", methods=("GET", "POST"))
 def landing():
     form = SignUpStream()
+    if form.validate_on_submit():
+        if form.stream.data == "flickr":
+            return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', email=form.email.data))
+        else:
+            return "service unsupported"
     return render_template("landing.html", form=form)
 
 @app.route("/_dump")
@@ -134,7 +133,7 @@ def display_digest(digest_encoded):
                                        FlickrPhoto.date_uploaded <= digest.end_date,
                                        FlickrPhoto.stream_id == stream.id).order_by(FlickrPhoto.date_taken).all()
     meta = {"stream" : stream, "digest_encoded" : digest_encoded}
-    return render_template("show_entries.html", entries=entries, email=None, meta=meta)
+    return render_template("show_entries.html", entries=entries, email=request.args.get("email", None), meta=meta)
 
 
 #

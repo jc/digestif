@@ -7,9 +7,23 @@ import sendgrid
 from digestif import flickr_oauth as flickr
 from digestif.models import Stream, FlickrPhoto, Digest, Subscription
 from digestif import db, hash_gen
-from digestif.views import display_digest
 
 FLICKR_DATE = "%Y-%m-%d %H:%M:%S"
+
+def metadata(stream):
+    token = (stream.oauth_token, stream.oauth_token_secret)
+    # build the query
+    query = {"method" : "flickr.people.getInfo",
+             "user_id" : stream.foreign_key,
+             "format" : "json",
+             "nojsoncallback" : 1}
+    # make the call and get the response
+    resp = flickr.get('', data=query, token=token)
+    
+    if resp.status == 200:
+        return resp.data["person"]["realname"]["_content"]
+    return "Error"
+    
 
 def retrieve_photos(stream, since=None):
     # if since date not specified we'll default to last time we checked

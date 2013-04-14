@@ -68,7 +68,7 @@ def make_user(email, user=None):
     """ Make or get user by email address """
     if not user:
         user = User.query.filter_by(email=email).first()
-    else:
+    elif user.email != email:
         user.email = email
         db.session.commit()
         print "updated user", user.id, user.email
@@ -93,6 +93,7 @@ def make_subscription(stream, user, frequency):
         subscription.frequency = frequency
         db.session.add(subscription)
         db.session.commit()
+        print "update subscription frequency", subscription.id, subscription.user_id, subscription.stream_id
     return subscription
 
 def make_stream(foreign_key, user, oauth_token, oauth_token_secret, last_checked=None): 

@@ -3,8 +3,7 @@
 {% block body %}
 
 <form method="POST" action="/subscribe/{{ stream_encoded }}">
-{{ form.email.label }} {{ form.email() }}
-{{ form.frequency.label }} {{ form.frequency() }}
+<p>Sign up {{ form.email(placeholder="email address") }} for emails up to {{ form.frequency() }} for <a href="{{ perma }}">Flickr photographs by {{ digestname }}</a>.</p>
 {{ form.hidden_tag() }}
 <input type="submit" value="submit" />
 </form>
