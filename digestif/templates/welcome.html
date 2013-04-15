@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+{% if subscription.frequency > 1 %}
+<p>Great! We'll start sending digests of <a href="{{ stream|stream2link}}">Flickr photographs by {{ stream|stream2name}}</a> to {{ user.email }} but don't worry,
+we'll only send them {{ subscription.frequency|days2words }}.</p>
+{% elif subscription.frequency == 0 %}
+<p>Too many digests of <a href="{{ stream|stream2link}}">{{ stream|stream2name}}</a> for you? OK we'll stop emailing them to {{ user.email }}. Remember you can always have the digests sent less often.</p>
+{% else %}
+<p>Great! We'll start sending digests of <a href="{{ stream|stream2link}}">{{ stream|stream2name}}</a> to {{ user.email }} every day!</p>
+{% endif %}
+
+{% endblock %}
