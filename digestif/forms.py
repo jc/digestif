@@ -7,10 +7,5 @@ class SignUpStream(Form):
 
 class SubscribeForm(Form):
     email = TextField("Email", [validators.Email()])
-    frequency = SelectField("Frequency", choices=[("1", "once a day"),
-                                                  ("3", "every three days"),
-                                                  ("7", "every week"),
-                                                  ("14", "every two weeks"),
-                                                  ("0", "never. I'd like to unsubscribe")])
-    stream = HiddenField("stream")
+    frequency = HiddenField("frequency", [validators.AnyOf(["0", "1", "2", "3", "7", "14"])]) 
 

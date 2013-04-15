@@ -82,12 +82,13 @@ def subscribe(stream_encoded):
         user = make_user(email)
         subscription = make_subscription(stream, user, frequency)
         # TODO page to describe subscription
-        return "Success"
+        return render_template("welcome.html", stream=stream, subscription=subscription,
+                               user=user)
     else:
         return render_template("subscribe.html", 
                                form=subscribe_form, 
-                               stream_encoded=stream_encoded, 
-                               digestname=processes.metadata(stream),
+                               stream_encoded=stream_encoded,
+                               stream=stream,
                                perma="http://www.flickr.com/photos/%s" % stream.foreign_key)
 
 
@@ -157,6 +158,32 @@ def permalink_filter(value, meta=None, email=False):
     if email:
         return "http://localhost:5000/digest/%s" % (meta["digest_encoded"])
     return "http://www.flickr.com/photos/%s/%s" % (meta["stream"].foreign_key, value.foreign_key)
+
+@app.template_filter("stream2link")
+def streamlink_filter(value):
+    return "http://www.flickr.com/photos/%s" % value.foreign_key
+
+@app.template_filter("days2words")
+def days2words_filter(value):
+    value = int(value)
+    if value == 0:
+        return "never"
+    if value == 1:
+        return "every day"
+    if value == 2:
+        return "every two days"
+    if value == 3:
+        return "every three days"
+    if value == 7:
+        return "every week"
+    if value == 14:
+        return "every two weeks"
+    return "almost knew it"
+
+@app.template_filter("stream2name")
+def stream2name_filter(value):
+    return processes.metadata(value)
+
 
 @app.template_filter()
 @evalcontextfilter

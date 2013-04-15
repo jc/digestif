@@ -19,7 +19,7 @@ Instagram. And we'll generate a subscription form.</p>
 {% endif %}
 <div class="narrow">
 <form id="create" method="POST" action="/">
-{{ form.email(placeholder="Your email address") }}
+{{ form.email(placeholder="Your email address", type="email", required="true") }}
 <span service="flickr" class="service social inactive">&#62211;</span> <span service="instagram" class="service social inactive">&#62253;</span> <button>Create</button>
 {{ form.hidden_tag() }}
 </form>
@@ -29,7 +29,6 @@ Instagram. And we'll generate a subscription form.</p>
        $("#stream").attr("value", $(this).attr("service"));
        $(".service").removeClass("active").addClass("inactive");
        $(this).addClass("active").removeClass("inactive");
-    //$("#create").submit();
     });
 </script>
 

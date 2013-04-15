@@ -2,10 +2,31 @@
 
 {% block body %}
 
-<form method="POST" action="/subscribe/{{ stream_encoded }}">
-<p>Sign up {{ form.email(placeholder="email address") }} for emails up to {{ form.frequency() }} for <a href="{{ perma }}">Flickr photographs by {{ digestname }}</a>.</p>
+<form id="subscribe" method="POST" action="/subscribe/{{ stream_encoded }}">
+<p class="center"><a href="{{ stream|stream2link }}">Flickr photographs by {{ stream|stream2name }}</a><br /> should be delivered to<br/> {{ form.email(placeholder="email address", size="30", type="email", required="true", class="center") }}<br/> no more often than<br/> <span id="more" class="inactive">+</span> <input type="text" class="option" value="every day" readonly="true"> <span id="less" class="inactive">-</span><br/><button>Subscribe</button></p> 
 {{ form.hidden_tag() }}
-<input type="submit" value="submit" />
 </form>
+
+<script>
+   var options = ["never", "every day", "every two days", "every three days", "every week", "every two weeks"];
+   var values = [0, 1, 2, 3, 7, 14];
+   var index = 1;
+   $(".option").ready(function () {
+       $(".option").attr("value", options[index]);
+       $("#frequency").attr("value", values[index]);
+   });
+   $("#more").click(function () {
+       index = index + 1;
+       if (index >= values.length) index = 0;
+       $(".option").attr("value", options[index]);
+       $("#frequency").attr("value", values[index]);
+    });
+    $("#less").click(function () {
+       index = index - 1;
+       if (index < 0) index = values.length - 1;
+       $(".option").attr("value", options[index]);
+       $("#frequency").attr("value", values[index]);
+    });
+</script>
 
 {% endblock %}
