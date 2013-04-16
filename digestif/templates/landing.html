@@ -8,19 +8,10 @@ friends and family as frequently (or infrequently) as they decide.</p>
 <p>To get started tell us your email address and select Flickr or
 Instagram. And we'll generate a subscription form.</p>
 
-{% if form.errors %}
-    <ul class="errors">
-        {% for field_name, field_errors in form.errors|dictsort if field_errors %}
-            {% for error in field_errors %}
-                <li>{{ form[field_name].label }}: {{ error }}</li>
-            {% endfor %}
-        {% endfor %}
-    </ul>
-{% endif %}
 <div class="narrow">
 <form id="create" method="POST" action="/">
 {{ form.email(placeholder="Your email address", type="email", required="true") }}
-<span service="flickr" class="service social inactive">&#62211;</span> <span service="instagram" class="service social inactive">&#62253;</span> <button>Create</button>
+<span service="flickr" class="service social inactive">&#62211;</span> <span service="instagram" class="service social inactive">&#62253;</span> <button class="action">Create</button>
 {{ form.hidden_tag() }}
 </form>
 </div>

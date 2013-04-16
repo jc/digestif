@@ -50,10 +50,14 @@ def handle_flickr_authorization(resp):
         stream = Stream.query.filter_by(foreign_key=flickr_id).first()
         if stream:
             user = stream.user
+            if user.email != email:
+                flash("We've updated the email address associated with your Flickr account.", "info")
+
+        flash("Great! We are all set. Tell your friends and family to visit this page to subscribe.", "success")
         user = make_user(email, user=user)
         stream = make_stream(flickr_id, user, oauth_token, oauth_token_secret,
                              last_checked=datetime.utcnow())
-        return redirect(url_for("subscribe", stream_encoded=hash_gen.encrypt(stream.user_id, stream.id)))
+        return redirect(stream.subscribe_url())
     return redirect(url_for("landing"))
 
 @app.route("/subscribe/<stream_encoded>", methods=("GET", "POST"))
@@ -85,11 +89,10 @@ def subscribe(stream_encoded):
         return render_template("welcome.html", stream=stream, subscription=subscription,
                                user=user)
     else:
+        flash_errors(subscribe_form)
         return render_template("subscribe.html", 
                                form=subscribe_form, 
-                               stream_encoded=stream_encoded,
-                               stream=stream,
-                               perma="http://www.flickr.com/photos/%s" % stream.foreign_key)
+                               stream=stream)
 
 
 @app.route("/", methods=("GET", "POST"))
@@ -100,6 +103,7 @@ def landing():
             return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', email=form.email.data))
         else:
             return "service unsupported"
+    flash_errors(form)
     return render_template("landing.html", form=form)
 
 @app.route("/_dump")
@@ -137,6 +141,10 @@ def display_digest(digest_encoded):
     return render_template("show_entries.html", entries=entries, email=request.args.get("email", None), meta=meta)
 
 
+def flash_errors(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flash(error, "error")
 #
 #
 #
@@ -159,10 +167,6 @@ def permalink_filter(value, meta=None, email=False):
         return "http://localhost:5000/digest/%s" % (meta["digest_encoded"])
     return "http://www.flickr.com/photos/%s/%s" % (meta["stream"].foreign_key, value.foreign_key)
 
-@app.template_filter("stream2link")
-def streamlink_filter(value):
-    return "http://www.flickr.com/photos/%s" % value.foreign_key
-
 @app.template_filter("days2words")
 def days2words_filter(value):
     value = int(value)
@@ -178,7 +182,7 @@ def days2words_filter(value):
         return "every week"
     if value == 14:
         return "every two weeks"
-    return "almost knew it"
+    return value
 
 @app.template_filter("stream2name")
 def stream2name_filter(value):

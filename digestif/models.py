@@ -1,10 +1,23 @@
 import datetime
 
+from flask import url_for
+from werkzeug.routing import BuildError
+
 from digestif import db
 from digestif.constants import *
+from digestif import hash_gen
 
 def generate_secret():
     return "secret"
+
+def permalink(function):
+    def inner(*args, **kwargs):
+        endpoint, values = function(*args, **kwargs)
+        try:
+            return url_for(endpoint, **values)
+        except BuildError:
+            return
+    return inner
 
 
 class Base(object):
@@ -32,6 +45,17 @@ class Stream(Base, db.Model):
     created = db.Column(db.DateTime, default=datetime.datetime.now)
     authorized = db.Column(db.Boolean)
     user = db.relationship("User")
+
+    @permalink
+    def subscribe_url(self):
+        encoded = hash_gen.encrypt(self.user_id, self.id)
+        return 'subscribe', {'stream_encoded': encoded}
+
+    def remote_url(self):
+        if self.service == FLICKR:
+            return "http://www.flickr.com/photos/{}".format(self.foreign_key)
+        return "/"
+
  
 class Subscription(Base, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -81,7 +105,7 @@ def make_user(email, user=None):
         user = User(email=email)
         db.session.add(user)
         db.session.commit()
-        print "creted user", user.id, user.email
+        print "created user", user.id, user.email
     return user
 
 def make_subscription(stream, user, frequency):
