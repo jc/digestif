@@ -49,7 +49,7 @@ def handle_flickr_authorization(resp):
         user = None
         stream = Stream.query.filter_by(foreign_key=flickr_id).first()
         if stream:
-            user = User.query.filter_by(id=stream.user_id).first()
+            user = stream.user
         user = make_user(email, user=user)
         stream = make_stream(flickr_id, user, oauth_token, oauth_token_secret,
                              last_checked=datetime.utcnow())
@@ -126,10 +126,10 @@ def display_digest(digest_encoded):
     else:
         digest_id = values[0]
     digest = Digest.query.filter_by(id=digest_id).first_or_404()
-    subscription = Subscription.query.filter_by(id=digest.subscription_id).first()
+    subscription = digest.subscription
     if not subscription:
         return "Unknown subscription"
-    stream = Stream.query.filter_by(id=subscription.stream_id).first()
+    stream = subscription.stream
     entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > digest.start_date,
                                        FlickrPhoto.date_uploaded <= digest.end_date,
                                        FlickrPhoto.stream_id == stream.id).order_by(FlickrPhoto.date_taken).all()

@@ -31,6 +31,7 @@ class Stream(Base, db.Model):
     last_checked = db.Column(db.DateTime)
     created = db.Column(db.DateTime, default=datetime.datetime.now)
     authorized = db.Column(db.Boolean)
+    user = db.relationship("User")
  
 class Subscription(Base, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -39,6 +40,8 @@ class Subscription(Base, db.Model):
     frequency = db.Column(db.Integer, nullable=False)
     last_digest = db.Column(db.DateTime)
     active = db.Column(db.Boolean, default=True)
+    user = db.relationship("User")
+    stream = db.relationship("Stream")
 
 
 class Digest(Base, db.Model):
@@ -48,6 +51,7 @@ class Digest(Base, db.Model):
     start_date = db.Column(db.DateTime)
     delivered = db.Column(db.Boolean, default=False)
     opened = db.Column(db.Boolean, default=False)
+    subscription = db.relationship("Subscription")
 
 class FlickrPhoto(Base, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -62,6 +66,7 @@ class FlickrPhoto(Base, db.Model):
     description = db.Column(db.String)
     foreign_key = db.Column(db.String)
     video = db.Column(db.Boolean)
+    stream = db.relationship("Stream")
     
 
 def make_user(email, user=None):
