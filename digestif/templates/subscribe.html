@@ -2,7 +2,7 @@
 
 {% block body %}
 
-<form id="subscribe" method="POST" action="/subscribe/{{ stream_encoded }}">
+<form id="subscribe" method="POST" action="{{ stream.subscribe_url() }}">
 <p class="center"><a href="{{ stream.remote_url() }}">Flickr photographs by {{ stream|stream2name }}</a><br /> should be delivered to<br/> {{ form.email(placeholder="email address", size="30", type="email", required="true", class="center") }}<br/> no more often than<br/> <span id="more" class="inactive">+</span> <input type="text" class="option" value="every day" readonly="true"> <span id="less" class="inactive">-</span><br/><button class="action">Subscribe</button></p> 
 {{ form.hidden_tag() }}
 </form>
