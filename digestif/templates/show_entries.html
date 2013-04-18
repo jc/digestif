@@ -8,6 +8,9 @@
     body {
     font-size: 14px;
     }    
+    p { 
+    font-size: 14px;
+    }
   </style>
 {% endif %}
 {% endblock %}
@@ -30,4 +33,7 @@
     </div>
   </div>
 {% endfor %}
+<hr/>
+<p>This is a digest of photographs by <a href="{{ meta["stream"].remote_url() }}">{{ meta["stream"]|stream2name }}</a>.</p>
+<p><a href="{{ meta["stream"].subscribe_url() }}">Adjust your subscription or subscribe for the first time</a>.</p>
 {% endblock %}
