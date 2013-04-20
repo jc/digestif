@@ -86,7 +86,7 @@ class FlickrPhoto(Base, db.Model):
     farm = db.Column(db.Integer)
     server = db.Column(db.Integer)
     secret = db.Column(db.String(255))
-    title = db.Column(db.String)
+    title = db.Column(db.String(255))
     description = db.Column(db.Text)
     foreign_key = db.Column(db.String(255))
     video = db.Column(db.Boolean)
