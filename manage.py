@@ -27,7 +27,7 @@ def db_create():
 def update(since=None):
     "Retrieves new photographs from streams"
     if since:
-        since = datetime.strptime(sys.argv[1], "%Y%m%d")
+        since = datetime.strptime(since, "%Y%m%d")
 
     for stream in Stream.query.all():
         processes.retrieve_photos(stream, since=since)
@@ -36,9 +36,9 @@ def update(since=None):
 def generate(today=None, previous=None):
     "Grenerates new digests"
     if previous:
-        previous = datetime.strptime(sys.argv[1], "%Y%m%d")
+        previous = datetime.strptime(previous, "%Y%m%d")
     if today:
-        today = datetime.strptime(sys.argv[2], "%Y%m%d")
+        today = datetime.strptime(today, "%Y%m%d")
 
     for subscription in Subscription.query.all():
         if subscription.active and subscription.frequency != 0:
