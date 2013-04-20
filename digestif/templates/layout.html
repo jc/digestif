@@ -4,19 +4,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
   <title>Digestif</title>
-  <link href="/static/style.css" rel="stylesheet" />
+  <link href="{{ url_for("static", filename="style.css", _external=True) }}" rel="stylesheet" />
 
   {% block head %}{% endblock %}
    
-  <script src="/static/jquery-1.9.1.min.js"></script>
-  <script src="/static/bootstrap-alert.js"></script>
+  <script src="{{ url_for('static', filename="jquery-1.9.1.min.js", _external=True) }}"></script>
+  <script src="{{ url_for('static', filename="bootstrap-alert.js", _external=True) }}"></script>
 
 </head>
 <body>
 
 <div id="sitewrap">
 <div id="header">
-<h1><a href="/">Digestif</a></h1>
+<h1><a href="{{ url_for("landing", _external=True) }}">Digestif</a></h1>
 </div>
 <div id="content">
 {% with messages = get_flashed_messages(with_categories=true) %}

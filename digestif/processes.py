@@ -132,8 +132,10 @@ def send_digest(digest, env):
     template = env.get_template("show_entries.html")
     html = template.render(entries=entries, meta=meta, email=True)
     html_email = premailer.transform(html)
+    print html_email
+    return None
     s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)
-    message = sendgrid.Message("james@digestif.me", "Digestif", 
+    message = sendgrid.Message("digests@digestif.me", "Digestif", 
                                "View this digestif at http://digestif.me/digest/%s" % digest_encoded,
                                html_email)
     message.add_to("james@jamesclarke.net")
