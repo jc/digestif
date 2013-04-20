@@ -1,7 +1,7 @@
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, _app_ctx_stack
+import os
 
-import json
-from datetime import datetime, timedelta
+from flask import Flask
+
 from flask_oauth import OAuth
 
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -9,14 +9,14 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from hashids import hashids
 
 # configuration
-DEBUG = True
-SECRET_KEY = 'development key'
-USERNAME = 'admin'
-PASSWORD = 'default'
 
 app = Flask(__name__)
-app.config.from_object(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////Users/Jclarke/tmp/test.db'
+
+if os.environ.get("DIGESTIF_DEV"):
+    app.config.from_object('digestif.config.DevelopmentConfig')
+else:
+    app.config.from_object('digestif.config.ProductionConfig')
+
 db = SQLAlchemy(app)
 
 hash_gen = hashids("twenty five people ate in holland")
