@@ -63,7 +63,7 @@ class hashids():
             return ret
 
         for number in values:
-            if not (isintance(number, int) or isintance(number, long) or number < 0:
+            if not (isintance(number, int) or isintance(number, long)) or number < 0:
                 return ret
 
         return self.__encode(values, self.__alphabet, self.__salt, self.__minHashLength)
