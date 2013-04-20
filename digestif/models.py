@@ -29,17 +29,17 @@ class Base(object):
 
 class User(Base, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    secret = db.Column(db.String)
-    email = db.Column(db.String, unique=True)
+    secret = db.Column(db.String(25))
+    email = db.Column(db.String(255), unique=True)
     created = db.Column(db.DateTime, default=datetime.datetime.now)
     
 class Stream(Base, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    oauth_token = db.Column(db.String, nullable=False)
-    oauth_token_secret = db.Column(db.String, nullable=False)
+    oauth_token = db.Column(db.String(255), nullable=False)
+    oauth_token_secret = db.Column(db.String(255), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     service = db.Column(db.Integer, nullable=False)
-    foreign_key = db.Column(db.String, nullable=False)
+    foreign_key = db.Column(db.String(255), nullable=False)
     last_updated = db.Column(db.DateTime)
     last_checked = db.Column(db.DateTime)
     created = db.Column(db.DateTime, default=datetime.datetime.now)
@@ -85,10 +85,10 @@ class FlickrPhoto(Base, db.Model):
     date_fetched = db.Column(db.DateTime, default=datetime.datetime.now)
     farm = db.Column(db.Integer)
     server = db.Column(db.Integer)
-    secret = db.Column(db.String)
+    secret = db.Column(db.String(255))
     title = db.Column(db.String)
-    description = db.Column(db.String)
-    foreign_key = db.Column(db.String)
+    description = db.Column(db.Text)
+    foreign_key = db.Column(db.String(255))
     video = db.Column(db.Boolean)
     stream = db.relationship("Stream")
     
