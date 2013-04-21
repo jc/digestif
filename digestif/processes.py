@@ -6,7 +6,7 @@ import sendgrid
 
 from digestif import flickr_oauth as flickr
 from digestif.models import Stream, FlickrPhoto, Digest, Subscription
-from digestif import db, hash_gen
+from digestif import db, hash_gen, app
 
 FLICKR_DATE = "%Y-%m-%d %H:%M:%S"
 
@@ -67,8 +67,7 @@ def retrieve_photos(stream, since=None):
 
     if resp.status != 200:
         successful = False
-        # TODO log a problem
-        print "Response code: %s\n data:%s" % (resp.status, resp.data)
+        app.logger.warning("Response code: %s; data: %s" % (resp.status, resp.data))
     
     stream.last_checked = now
     db.session.add(stream)
@@ -98,9 +97,10 @@ def create_flickr_photo(photo, stream):
         db.session.add(flickrphoto)
         stream.last_updated = datetime.now()
         db.session.commit()
+        app.logger.info("Added Flickr photo %s", id)
     else:
         # already present
-        print flickrphoto, "already present"
+        pass
     return flickrphoto
                               
                
@@ -112,7 +112,6 @@ def create_digest(subscription, previous_dt=None, today_dt=None):
     if not today_dt:
         today_dt = datetime.now()
     frequency_td = timedelta(days=subscription.frequency)
-    print frequency_td, today_dt - previous_dt
     digest = None
     if today_dt - previous_dt >= frequency_td:
         digest = Digest(subscription_id=subscription.id, end_date=today_dt,
@@ -121,6 +120,7 @@ def create_digest(subscription, previous_dt=None, today_dt=None):
         subscription.last_digest = today_dt
         db.session.add(subscription)
         db.session.commit()
+        app.logger.info("Digest created.")
     return digest
 
 def send_digest(digest, env):
@@ -137,12 +137,13 @@ def send_digest(digest, env):
     s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)
     
     user = subscription.user
-    message = sendgrid.Message(("digests@digestif.me", "Digestif"), "Your latest photo digest.",
+    message = sendgrid.Message(("digests@digestif.me", "Digestif"), "A new photo digest",
                                "View this digestif at http://digestif.me/digest/%s" % digest_encoded,
                                html_email)
     message.add_to(user.email)
     if s.web.send(message):
         digest.delivered = True
+        app.logger.info("Digest delivered to %s", user.email)
         db.session.commit()
 
 

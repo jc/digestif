@@ -19,6 +19,17 @@ else:
 
 db = SQLAlchemy(app)
 
+if not app.debug:
+    import logging
+    from logging.handlers import RotatingFileHandler
+    from logging import Formatter
+    file_handler = RotatingFileHandler("/home/jclarke/webapps/digestifweb/logs/digestifweb.log")
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    for logger in [app.logger, logging.getLogger('sqlalchemy')]:
+        logger.addHandler(file_handler)
+
+
 hash_gen = hashids("twenty five people ate in holland")
 
 

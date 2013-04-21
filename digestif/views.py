@@ -32,7 +32,6 @@ def handle_oauth_exception(error):
 @flickr_oauth.authorized_handler
 def handle_flickr_authorization(resp):
     if resp is None:
-        print "no response"
         return url_for("landing")
     
     flickr_id = resp.get("user_nsid")
@@ -40,8 +39,7 @@ def handle_flickr_authorization(resp):
     oauth_token = resp.get("oauth_token")
     
     if not flickr_id or not oauth_token_secret or not oauth_token:
-        # TODO error handling
-        print "no flickr auth", flickr_id, oauth_token, oauth_token_secret
+        app.logger.warning("no flickr auth %s, %s, %s" % (flickr_id, oauth_token, oauth_token_secret))
         return redirect(url_for("landing"))
     
     email = request.args.get("email")
@@ -66,7 +64,7 @@ def subscribe(stream_encoded):
     try:
         values = hash_gen.decrypt(str(stream_encoded)) #values stores user_id, stream_id
     except TypeError:
-        print "Error in hash_gen.decrypt again!"
+        app.logger.error("Error in hashids.decrypt! %s" % stream_encoded)
     if values:
         user_id, stream_id = values
     else:
@@ -75,7 +73,7 @@ def subscribe(stream_encoded):
     stream = Stream.query.filter_by(id=stream_id).first_or_404()
 
     if stream.user_id != user_id:
-        # TODO handle error case.
+        app.logger.error("Mismatching user and stream! %s, %s" % (stream.user_id, user_id))
         return "Mismatching user and stream!"
 
     subscribe_form = SubscribeForm()
@@ -85,7 +83,6 @@ def subscribe(stream_encoded):
         frequency = int(subscribe_form.frequency.data)
         user = make_user(email)
         subscription = make_subscription(stream, user, frequency)
-        # TODO page to describe subscription
         return render_template("welcome.html", stream=stream, subscription=subscription,
                                user=user)
     else:

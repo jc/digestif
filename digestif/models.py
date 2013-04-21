@@ -3,7 +3,7 @@ import datetime
 from flask import url_for
 from werkzeug.routing import BuildError
 
-from digestif import db
+from digestif import db, app
 from digestif.constants import *
 from digestif import hash_gen
 
@@ -100,12 +100,12 @@ def make_user(email, user=None):
     elif user.email != email:
         user.email = email
         db.session.commit()
-        print "updated user", user.id, user.email
+        app.logger.info("updated user id: %s, email: %s" % (user.id, user.email))
     if not user:
         user = User(email=email)
         db.session.add(user)
         db.session.commit()
-        print "created user", user.id, user.email
+        app.logger.info("created user id: %s, email: %s" % (user.id, user.email))
     return user
 
 def make_subscription(stream, user, frequency):
@@ -117,12 +117,12 @@ def make_subscription(stream, user, frequency):
                                     frequency=frequency, last_digest=datetime.datetime.now())
         db.session.add(subscription)
         db.session.commit()
-        print "created subscription", subscription.id, subscription.user_id, subscription.stream_id
+        app.logger.info("created subscription id: %s, user id: %s, stream id: %s" % (subscription.id, subscription.user_id, subscription.stream_id))
     elif subscription.frequency != frequency:
         subscription.frequency = frequency
         db.session.add(subscription)
         db.session.commit()
-        print "update subscription frequency", subscription.id, subscription.user_id, subscription.stream_id
+        app.logger.info("updated subscription frequency id: %s, user id: %s, stream id: %s" % (subscription.id, subscription.user_id, subscription.stream_id))
     return subscription
 
 def make_stream(foreign_key, user, oauth_token, oauth_token_secret, last_checked=None): 
@@ -135,11 +135,10 @@ def make_stream(foreign_key, user, oauth_token, oauth_token_secret, last_checked
             stream.last_checked = last_checked
         db.session.add(stream)
         db.session.commit()
-        print "created stream", stream.id, stream.foreign_key
+        app.logger.info("created stream id: %s, key: %s" % (stream.id, stream.foreign_key))
     elif stream.oauth_token != oauth_token and stream.oauth_token_secret != oauth_token_secret:
         stream.oauth_token = oauth_token
         stream.oauth_token_secret = oauth_token_secret
         db.session.commit()
     return stream
         
-
