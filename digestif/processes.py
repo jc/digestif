@@ -139,7 +139,9 @@ def send_digest(digest, env):
                                "View this digestif at http://digestif.me/digest/%s" % digest_encoded,
                                html_email)
     message.add_to(user.email)
-    s.web.send(message)
+    if s.web.send(message):
+        digest.delivered = True
+        db.session.commit()
 
 
 
