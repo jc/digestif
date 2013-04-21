@@ -164,7 +164,7 @@ def imgurl_filter(value, meta=None, email=False):
 @app.template_filter("permalink")
 def permalink_filter(value, meta=None, email=False):
     if email:
-        return url_for("display_digest",digest_encoded=meta["digest_encoded"], _external=True)
+        return url_for("display_digest", digest_encoded=meta["digest_encoded"])
     return "http://www.flickr.com/photos/%s/%s" % (meta["stream"].foreign_key, value.foreign_key)
 
 @app.template_filter("days2words")

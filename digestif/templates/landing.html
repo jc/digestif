@@ -9,7 +9,7 @@ friends and family as frequently (or infrequently) as they decide.</p>
 Instagram. We'll generate a subscription form.</p>
 
 <div class="narrow">
-<form id="create" method="POST" action="{{ url_for("landing", _external=True) }}">
+<form id="create" method="POST" action="{{ url_for("landing") }}">
 {{ form.email(placeholder="Your email address", type="email", required="true") }}
 <span service="flickr" class="service social inactive">&#62211;</span> <span service="instagram" class="service social inactive">&#62253;</span> <button class="action">Create</button>
 {{ form.hidden_tag() }}

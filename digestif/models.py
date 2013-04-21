@@ -49,7 +49,7 @@ class Stream(Base, db.Model):
     @permalink
     def subscribe_url(self):
         encoded = hash_gen.encrypt(self.user_id, self.id)
-        return 'subscribe', {'stream_encoded': encoded, '_external' : True}
+        return 'subscribe', {'stream_encoded': encoded}
 
     def remote_url(self):
         if self.service == FLICKR:

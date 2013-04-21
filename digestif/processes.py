@@ -131,7 +131,7 @@ def send_digest(digest, env):
     meta = {"stream" : stream, "digest_encoded" : digest_encoded}
     template = env.get_template("show_entries.html")
     html = template.render(entries=entries, meta=meta, email=True)
-    html_email = premailer.transform(html)
+    html_email = premailer.transform(html, base_url="http://digestif.me")
     print html_email
     return None
     s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)

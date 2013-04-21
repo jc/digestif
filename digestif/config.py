@@ -6,11 +6,9 @@ class Config(object):
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = "mysql://jclarke:pepper@localhost/digestif"
-    SERVER_NAME = "digestif.me"
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SERVER_NAME = "localhost:5000"
 
 class TestingConfig(Config):
     TESTING = True
