@@ -54,6 +54,8 @@ def retrieve_photos(stream, since=None):
     # do the page dance!
     while resp.status == 200 and page <= pages:       
         for photo in resp.data["photos"]["photo"]:
+            if photo["ispublic"] == "0":
+                continue
             flickrphoto = create_flickr_photo(photo, stream)
         query["page"] = page + 1
         # dance dance dance
