@@ -113,14 +113,19 @@ def create_digest(subscription, previous_dt=None, today_dt=None):
         today_dt = datetime.now()
     frequency_td = timedelta(days=subscription.frequency)
     digest = None
+    stream = subscription.stream
     if today_dt - previous_dt >= frequency_td:
-        digest = Digest(subscription_id=subscription.id, end_date=today_dt,
-                        start_date=previous_dt)
-        db.session.add(digest)
-        subscription.last_digest = today_dt
-        db.session.add(subscription)
-        db.session.commit()
-        app.logger.info("Digest created.")
+        count = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > previous_dt,
+                                         FlickrPhoto.date_uploaded <= today_dt,
+                                         FlickrPhoto.stream_id == stream.id).count()
+        if count > 0:
+            digest = Digest(subscription_id=subscription.id, end_date=today_dt,
+                            start_date=previous_dt)
+            db.session.add(digest)
+            subscription.last_digest = today_dt
+            db.session.add(subscription)
+            db.session.commit()
+            app.logger.info("Digest created.")
     return digest
 
 def send_digest(digest, env):
