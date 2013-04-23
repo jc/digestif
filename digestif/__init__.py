@@ -17,6 +17,18 @@ if os.environ.get("DIGESTIF_DEV"):
 else:
     app.config.from_object('digestif.config.ProductionConfig')
 
+
+if not app.debug:
+    import logging
+    from logging.handlers import RotatingFileHandler
+    from logging import Formatter
+    file_handler = RotatingFileHandler("/home/jclarke/webapps/digestifweb/logs/digestifweb.log")
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    app.logger.setLevel(logging.INFO)
+    for logger in [app.logger, logging.getLogger('sqlalchemy')]:
+        logger.addHandler(file_handler)
+
 db = SQLAlchemy(app)
 
 

@@ -20,19 +20,6 @@ from digestif import hash_gen
 from digestif import processes
 
 
-@app.before_first_request
-def setup_logging():
-    if not app.debug:
-        import logging
-        from logging.handlers import RotatingFileHandler
-        from logging import Formatter
-        file_handler = RotatingFileHandler("/home/jclarke/webapps/digestifweb/logs/digestifweb.log")
-        file_handler.setLevel(logging.INFO)
-        file_handler.setFormatter(Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-        for logger in [app.logger, logging.getLogger('sqlalchemy')]:
-            logger.addHandler(file_handler)
-
-
 @flickr_oauth.tokengetter
 def get_flickr_token(token=None):
     #pass return (token, secret) or None
