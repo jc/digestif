@@ -33,12 +33,14 @@ def update(since=None):
         processes.retrieve_photos(stream, since=since)
 
 @manager.command
-def generate(today=None, previous=None):
+def generate(today=None, previous=None, imprecise=True):
     "Grenerates new digests"
     if previous:
         previous = datetime.strptime(previous, "%Y%m%d")
     if today:
         today = datetime.strptime(today, "%Y%m%d")
+    if imprecise:
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
     for subscription in Subscription.query.all():
         if subscription.active and subscription.frequency != 0:
