@@ -287,5 +287,10 @@ button.close {
 {% endfor %}
 <hr/>
 <p>This is a digest of photographs by <a href="{{ meta["stream"].remote_url() }}">{{ meta["stream"]|stream2name }}</a>.</p>
-<p><a href="{{ meta["stream"].subscribe_url() }}">Adjust your subscription or subscribe for the first time</a>.</p>
+{% if email %}
+<p>We are currently sending digests no more often than {{ meta["digest"].subscription.frequency|days2words }} when there are new photographs. Want to see this more, or less? <a href="{{ meta["stream"].subscribe_url() }}">Adjust your subscription</a>.</p>
+{% else %}
+<p>Do you want to receive similar digests? <a href="{{ meta["stream"].subscribe_url() }}">Adjust your subscription or subscribe for the first time</a>.</p>
+{% endif %}
+
 {% endblock %}

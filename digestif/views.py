@@ -135,7 +135,7 @@ def display_digest(digest_encoded):
     entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > digest.start_date,
                                        FlickrPhoto.date_uploaded <= digest.end_date,
                                        FlickrPhoto.stream_id == stream.id).order_by(FlickrPhoto.date_taken).all()
-    meta = {"stream" : stream, "digest_encoded" : digest_encoded}
+    meta = {"stream" : stream, "digest_encoded" : digest_encoded, "digest" : digest}
     return render_template("show_entries.html", entries=entries, email=request.args.get("email", None), meta=meta)
 
 
