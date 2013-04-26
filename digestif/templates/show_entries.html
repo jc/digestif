@@ -2,17 +2,6 @@
 {% block head %}
 {% if email %}
   <style type="text/css" media="screen">
-@font-face {
-    font-family: 'entypo-social';
-    src: url('/static/entypo-social.eot');
-    src: url('/static/entypo-social.eot?#iefix') format('embedded-opentype'),
-         url('/static/entypo-social.woff') format('woff'),
-         url('/static/entypo-social.ttf') format('truetype'),
-         url('/static/entypo-social.svg#entypo-social') format('svg');
-    font-weight: normal;
-    font-style: normal;
-}
-
 html, body, div, span, ol, ul, li, lh {
     margin: 0;
     padding: 0;
@@ -25,7 +14,7 @@ html, body, div, span, ol, ul, li, lh {
 body, input {
     color: #4b4b4b;
     font-family: Georgia, Palatino, 'Palatino Linotype', Times, 'Times New Roman', serif;
-    font-size: 24px;
+    font-size: 14px;
 }
 
 input[type="text"],
@@ -67,7 +56,7 @@ button.action {
 }
 
 p {
-    font-size: 1.5em;
+    font-size: 14px;
 }
 
 #header {
@@ -99,8 +88,8 @@ h1 a {
 
 #sitewrap {
     background: #fff;
-    width: 800px;
-    margin: 0 auto;
+    width: 600px;
+    margin: 0;
     padding: 0 60px;
 }
 
@@ -274,15 +263,6 @@ button.close {
     margin-top: 5px;
 }
 
-    #sitewrap {
-    width: 500px;
-    }
-    body {
-    font-size: 14px;
-    }    
-    p { 
-    font-size: 14px;
-    }
   </style>
 {% endif %}
 {% endblock %}
