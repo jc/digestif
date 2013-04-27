@@ -40,7 +40,8 @@ def generate(today=None, previous=None, imprecise=True):
     if today:
         today = datetime.strptime(today, "%Y%m%d")
     if imprecise:
-        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        # utc then an attempt to make it close for EST morning
+        today = datetime.utcnow().replace(hour=8, minute=0, second=0, microsecond=0)
 
     for subscription in Subscription.query.all():
         if subscription.active and subscription.frequency != 0:
