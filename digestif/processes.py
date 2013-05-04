@@ -136,7 +136,7 @@ def send_digest(digest, env):
                                        FlickrPhoto.date_uploaded <= digest.end_date,
                                        FlickrPhoto.stream_id == stream.id).order_by(FlickrPhoto.date_taken).all()
     meta = {"stream" : stream, "digest_encoded" : digest_encoded, "digest" : digest}
-    template = env.get_template("show_entries.html")
+    template = env.get_template("email.html")
     html = template.render(entries=entries, meta=meta, email=True)
     html_email = premailer.transform(html, base_url="http://digestif.me")
     s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)
