@@ -104,6 +104,11 @@ def landing():
     flash_errors(form)
     return render_template("landing.html", form=form)
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
 @app.route("/_dump")
 def dump():
     data = ["<pre><code>"]
