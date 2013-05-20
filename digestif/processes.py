@@ -136,14 +136,14 @@ def send_digest(digest, env):
                                        FlickrPhoto.date_uploaded <= digest.end_date,
                                        FlickrPhoto.stream_id == stream.id).order_by(FlickrPhoto.date_taken).all()
     meta = {"stream" : stream, "digest_encoded" : digest_encoded, "digest" : digest}
-    template = env.get_template("show_entries.html")
+    template = env.get_template("email.html")
     html = template.render(entries=entries, meta=meta, email=True)
     html_email = premailer.transform(html, base_url="http://digestif.me")
     s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)
     
     user = subscription.user
     message = sendgrid.Message(("digests@digestif.me", "Digestif"), "A new photo digest",
-                               "View this digestif at http://digestif.me/digest/%s" % digest_encoded,
+                               "You have a new digest of photographs to view. View this email as HTML or visit digestif at http://digestif.me/digest/%s" % digest_encoded,
                                html_email)
     message.add_to(user.email)
     if s.web.send(message):
