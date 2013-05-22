@@ -1,5 +1,11 @@
 {% extends "layout.html" %}
-
+{% block head %}
+  <style type="text/css" media="screen">
+   p, ul, li {
+    font-size: 24px;
+  }
+  </style>
+{% endblock %}
 {% block body %}
 
 <h2>About</h2>
@@ -9,27 +15,41 @@ family subscribe and decide how frequently they want digests delivered. That
 way, when you post new photographs your friends and family are notified on their
 terms.</p>
 
+<div class="photo"><img src="/static/digestif-mail.jpg" /></div>
+
+<p><strong>How does this work?</strong></p>
+<p>You connect your Flickr account to Digestif via
+the <a href="/">frontpage</a>. Digestif generates a subscription page
+you can share with your friends and family to sign-up for
+digests. Every day Digestif checks your photostream for new
+photographs. Digestif sends email digests of your photographs to your
+friends and family according to their preferred delivery rate.</p>
+
+<p><strong>Which photographs are sent?</strong></p>
+<p>All photographs that are marked public, friends, or family. Private
+photographs are never sent.</p>
+
 <p><strong>Why?</strong></p>
-<p>When our son, Henry, was born we wanted to share photographs with our friends
-and family. There are so many ways to share your photographs online but they are
-all optimized for the photographer, not the viewer.</p>
-<ul><li>Facebook forces everyone to be a member of a walled garden.</li>
+<p>When our son, Henry, was born we wanted to share photographs with
+our friends and family. There are so many ways to share your
+photographs online but none of them are simple.</p>
+
+<ul><li>Facebook forces everyone to be a member of a walled
+garden.</li>
 <li>Instagram. You have to pester your friends and family to download an app and
 register.</li>
-<li>Flickr is great! But notification of new photographs is tricky (RSS is not simple).</li>
+<li>Flickr is great! But notification of new photographs is tricky.</li>
 <li>Apple Photostream. Pretty good, if you all own Apple devices.</li>
 </ul>
 
-<p>Finally, email attachments. Universal. But now you have to spam your friends
-and family. Grand-parents may want photos every day but my brother only wants to
-see photos once a month. Managing this is a pain. So we created Digestif.</p>
-
-<p><strong>So what are you solving?</strong></p>
-<p>Sharing photographs is hard. Not annoying people is hard. Digestif solves
-these problems.</p>
+<p>A lot of people resort to sending emails with
+attachments. Universal. But now you have to spam your friends and
+family. Grand-parents may want photos every day but my brother only
+wants to see photos once a month. Managing this is a pain. So we
+created Digestif.</p>
 
 <p><strong>Who is behind this?</strong></p>
-<p><a href="http://jamesclarke.net">James Clarke</a> is building this in-between
+<p><a href="http://jamesclarke.net">James Clarke</a> is building this during
 Henry's naps at the weekend.</p>
 
 
