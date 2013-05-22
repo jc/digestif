@@ -150,7 +150,7 @@ p.lead { font-size:17px; }
 p.last { margin-bottom:0px;}
 
 p.date { font-size:12px; text-align:right;}
-p.image { text-align:center;}
+p.image { text-align:center; margin-top:0px;}
 ul li {
 	margin-left:5px;
 	list-style-position: inside;
@@ -297,7 +297,7 @@ ul.sidebar li a h1,ul.sidebar li a h2,ul.sidebar li a h3,ul.sidebar li a h4,ul.s
 
 						<!-- Callout Panel -->
 						<p class="callout">
-We are currently sending digests no more often than {{ meta["digest"].subscription.frequency|days2words }} when there are new photographs. Want to see this more, or less? <a href="{{ meta["stream"].subscribe_url() }}">Adjust your subscription</a>.
+We are currently sending you digests {% if meta["digest"].subscription.frequency == 1 %}every day {% else %}no more often than {{ meta["digest"].subscription.frequency|days2words }}{% endif %} when there are new photographs. Want to change the delivery rate? <a href="{{ meta["stream"].subscribe_url() }}">Adjust your subscription</a>.
 						</p><!-- /Callout Panel -->
 					</td>
 				</tr>
