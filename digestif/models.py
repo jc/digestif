@@ -114,7 +114,7 @@ def make_subscription(stream, user, frequency):
                               Subscription.stream_id == stream.id).first()
     if not subscription:
         subscription = Subscription(user_id=user.id, stream_id=stream.id,
-                                    frequency=frequency, last_digest=datetime.datetime.now())
+                                    frequency=frequency, last_digest=datetime.datetime.now() - datetime.timedelta(days=frequency))
         db.session.add(subscription)
         db.session.commit()
         app.logger.info("created subscription id: %s, user id: %s, stream id: %s" % (subscription.id, subscription.user_id, subscription.stream_id))
