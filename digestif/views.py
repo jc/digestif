@@ -176,15 +176,17 @@ def days2words_filter(value):
     if value == 0:
         return "never"
     if value == 1:
-        return "every day"
+        return "daily"
     if value == 2:
         return "every two days"
     if value == 3:
         return "every three days"
     if value == 7:
-        return "every week"
+        return "weekly"
     if value == 14:
-        return "every two weeks"
+        return "biweekly"
+    if value == 30:
+        return "monthly"
     return value
 
 @app.template_filter("stream2name")
