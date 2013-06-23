@@ -33,7 +33,7 @@ def update(since=None):
         processes.retrieve_photos(stream, since=since)
 
 @manager.command
-def generate(today=None, previous=None, imprecise=True):
+def generate(today=None, previous=None, imprecise=False):
     "Grenerates new digests"
     if previous:
         previous = datetime.strptime(previous, "%Y%m%d")
