@@ -143,7 +143,7 @@ def send_digest(digest, env):
     
     user = subscription.user
     message = sendgrid.Message(("digests@digestif.me", "Digestif"), "A new photo digest from %s" % metadata(stream),
-                               "You have a new digest of photographs to view. View this email as HTML or visit digestif at http://digestif.me/digest/%s" % digest_encoded,
+                               "Digestif\n\nYou have a new digest of photographs to view from %s. View this email as HTML or visit http://digestif.me/digest/%s\n\nWant to change the delivery rate? Adjust your subscription at http://digestif.me%s\n\nDigestif converts your photostream into an email digest. Your friends and family subscribe and decide how frequently they want digests delivered. That way, when you post new photographs your friends and family are notified on their terms." % (metadata(stream), digest_encoded, stream.subscribe_url()),
                                html_email)
     message.add_to(user.email)
     if s.web.send(message):
