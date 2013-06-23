@@ -35,7 +35,7 @@ def retrieve_photos(stream, since=None):
     # build the query
     query = {"method" : "flickr.people.getPhotos",
              "user_id" : stream.foreign_key,
-             "extras" : "date_upload, date_taken, description",
+             "extras" : "date_upload, date_taken, description, media",
              "format" : "json",
              "nojsoncallback" : 1,
              "min_upload_date" :  (since - datetime(1970, 1, 1)).total_seconds()}

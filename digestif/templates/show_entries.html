@@ -8,7 +8,14 @@
   <div class="image">
     <div class="dateline"><p>{{entry.date_taken|datetime}}</p></div>
     <div class="photo">
+      {% if entry.video %}
+      <video width="800" poster="{{ entry|imgurl(meta=meta, email=email) }}">
+        <source src="{{ entry|videosrc }}" type="video/mp4" />
+        <a href="{{ entry|permalink(email=email, meta=meta) }}"><img src="/static/play.png" /></a>
+      </video>
+      {% else %}
       <a href="{{ entry|permalink(email=email, meta=meta) }}"><img src="{{ entry|imgurl(meta=meta, email=email) }}" /></a>
+      {% endif %}
     </div>
     <div class="caption">
       {% if entry.title %}
