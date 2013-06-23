@@ -11,11 +11,12 @@ Instagram. We'll generate a subscription form.</p>
 <div class="narrow">
 <form id="create" method="POST" action="{{ url_for("landing") }}">
 {{ form.email(placeholder="Your email address", type="email", required="true") }}
-<span title="flickr" service="flickr" class="service social inactive">&#62211;</span> <span title="Instagram" service="instagram" class="service social inactive">&#62253;</span> <button class="action">Create</button>
+<span data-toggle="tooltip" title="flickr" service="flickr" class="service social inactive">&#62211;</span> <span data-toggle="tooltip" title="Instagram" service="instagram" class="service social inactive">&#62253;</span> <button class="action">Create</button>
 {{ form.hidden_tag() }}
 </form>
 </div>
 <script>
+    $(".service").tooltip();
     $(".service").click(function () {
        $("#stream").attr("value", $(this).attr("service"));
        $(".service").removeClass("active").addClass("inactive");
