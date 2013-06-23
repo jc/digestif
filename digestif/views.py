@@ -160,8 +160,8 @@ def flash_errors(form):
 
 @app.template_filter("videosrc")
 def videosrc_filter(value):
-    if fimg.video:
-        return "http://www.flickr.com/photos/%s/%s/play/hd/%s/" % (fimg.stream.foreign_key, fimg.foreign_key, fmg.secret)
+    if value.video:
+        return "http://www.flickr.com/photos/%s/%s/play/hd/%s/" % (value.stream.foreign_key, value.foreign_key, value.secret)
     else:
         return ""
 
