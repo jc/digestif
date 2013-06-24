@@ -35,7 +35,7 @@ def retrieve_photos(stream, since=None):
     # build the query
     query = {"method" : "flickr.people.getPhotos",
              "user_id" : stream.foreign_key,
-             "extras" : "date_upload, date_taken, description, media",
+             "extras" : "date_upload, date_taken, description, media, tags",
              "format" : "json",
              "nojsoncallback" : 1,
              "min_upload_date" :  (since - datetime(1970, 1, 1)).total_seconds()}
@@ -55,6 +55,8 @@ def retrieve_photos(stream, since=None):
     while resp.status == 200 and page <= pages:       
         for photo in resp.data["photos"]["photo"]:
             if photo["ispublic"] == "0":
+                continue
+            if "digestif:ignore=true" in photo["tags"]:
                 continue
             flickrphoto = create_flickr_photo(photo, stream)
         query["page"] = page + 1
