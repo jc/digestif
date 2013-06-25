@@ -148,6 +148,9 @@ def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
             flash(error, "error")
+
+    
+
 #
 #
 #
@@ -155,11 +158,17 @@ def flash_errors(form):
 #
 #
 
+@app.template_filter("videosrc")
+def videosrc_filter(value, size="hd"):
+    if value.video:
+        return "http://www.flickr.com/photos/%s/%s/play/%s/%s/" % (value.stream.foreign_key, value.foreign_key, size, value.secret)
+    else:
+        return ""
+
 @app.template_filter("imgurl")
 def imgurl_filter(value, meta=None, email=False):
     if email:
         return "http://farm%s.staticflickr.com/%s/%s_%s.jpg" % (value.farm, value.server, value.foreign_key, value.secret)
-    size = "z"
     if value.date_uploaded >= datetime(2012, 03, 01):
         size = "c"
     return "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg" % (value.farm, value.server, value.foreign_key, value.secret, size)
