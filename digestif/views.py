@@ -10,8 +10,8 @@ from jinja2 import evalcontextfilter, Markup
 import premailer 
 
 from digestif import app
-from digestif import flickr_oauth
-from digestif.models import User, Stream, FlickrPhoto, Subscription, Digest
+from digestif import flickr_oauth, instagram_oauth
+from digestif.models import User, Stream, FlickrPhoto, Subscription, Digest, InstagramPhoto
 from digestif import db
 from digestif.constants import *
 from digestif.models import make_user, make_subscription, make_stream
@@ -25,6 +25,10 @@ def get_flickr_token(token=None):
     #pass return (token, secret) or None
     return token
 
+@instagram_oauth.tokengetter
+def get_instagram_token(token=None):
+    return token
+
 #@app.errorhandler(OAuthException)
 def handle_oauth_exception(error):
     return "<p>%s</p><p>%s</p><p>%s</p>" % (error.message, error.type, error.data)
@@ -33,7 +37,7 @@ def handle_oauth_exception(error):
 @flickr_oauth.authorized_handler
 def handle_flickr_authorization(resp):
     if resp is None:
-        return url_for("landing")
+        return redirect(url_for("landing"))
     
     flickr_id = resp.get("user_nsid")
     oauth_token_secret = resp.get("oauth_token_secret")
@@ -58,6 +62,36 @@ def handle_flickr_authorization(resp):
                              last_checked=datetime.utcnow())
         return redirect(stream.subscribe_url())
     return redirect(url_for("landing"))
+
+@app.route('/new/instagram')
+@instagram_oauth.authorized_handler
+def handle_instagram_authorization(resp):
+    if resp is None:
+        return redirect(url_for("landing"))
+    instagram_user = resp.get("user")
+    instagram_id = instagram_user["id"]
+    access_token = resp.get("access_token")
+    
+    if not instagram_user or not access_token:
+        app.logger.warning("no instagram auth %s, %s, %s" % (instagram_user, access_token))
+        return redirect(url_for("landing"))
+    
+    email = request.args.get("email")
+    if email:
+        user = None
+        stream = Stream.query.filter_by(foreign_key=instagram_id).first()
+        if stream:
+            user = stream.user
+            if user.email != email:
+                flash("We've updated the email address associated with your Instagram account.", "info")
+
+        flash("Great! We are all set. Tell your friends and family to visit this page to subscribe.", "success")
+        user = make_user(email, user=user)
+        stream = make_stream(instagram_id, user, access_token, "",
+                             last_checked=datetime.utcnow(), service=INSTAGRAM)
+        return redirect(stream.subscribe_url())
+    return redirect(url_for("landing"))
+
 
 @app.route("/subscribe/<stream_encoded>", methods=("GET", "POST"))
 def subscribe(stream_encoded):
@@ -99,6 +133,8 @@ def landing():
     if form.validate_on_submit():
         if form.stream.data == "flickr":
             return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', email=form.email.data))
+        elif form.stream.data == "instagram":
+            return instagram_oauth.authorize(callback="http://localhost:5000"+url_for('handle_instagram_authorization', email=form.email.data))
         else:
             return "service unsupported"
     flash_errors(form)
@@ -137,9 +173,16 @@ def display_digest(digest_encoded):
     if not subscription:
         return "Unknown subscription"
     stream = subscription.stream
-    entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > digest.start_date,
-                                       FlickrPhoto.date_uploaded <= digest.end_date,
-                                       FlickrPhoto.stream_id == stream.id).order_by(FlickrPhoto.date_taken).all()
+    if stream.service == FLICKR:
+        entries = FlickrPhoto.query.filter(FlickrPhoto.date_uploaded > digest.start_date,
+                                           FlickrPhoto.date_uploaded <= digest.end_date,
+                                           FlickrPhoto.stream_id == stream.id).order_by(FlickrPhoto.date_taken).all()
+    elif stream.service == INSTAGRAM:
+        entries = InstagramPhoto.query.filter(InstagramPhoto.date_uploaded > digest.start_date,
+                                              InstagramPhoto.date_uploaded <= digest.end_date,
+                                              InstagramPhoto.stream_id == stream.id).order_by(InstagramPhoto.date_taken).all()
+    else:
+        entries = None
     meta = {"stream" : stream, "digest_encoded" : digest_encoded, "digest" : digest}
     return render_template("show_entries.html", entries=entries, email=request.args.get("email", None), meta=meta)
 
@@ -160,24 +203,38 @@ def flash_errors(form):
 
 @app.template_filter("videosrc")
 def videosrc_filter(value, size="hd"):
-    if value.video:
+    if value.video and meta["stream"].service == INSTAGRAM:
+        return value.standard_resolution
+    elif value.video and meta["stream"].service == FLICKR:
         return "http://www.flickr.com/photos/%s/%s/play/%s/%s/" % (value.stream.foreign_key, value.foreign_key, size, value.secret)
     else:
         return ""
 
 @app.template_filter("imgurl")
 def imgurl_filter(value, meta=None, email=False):
-    if email:
-        return "http://farm%s.staticflickr.com/%s/%s_%s.jpg" % (value.farm, value.server, value.foreign_key, value.secret)
-    if value.date_uploaded >= datetime(2012, 03, 01):
-        size = "c"
-    return "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg" % (value.farm, value.server, value.foreign_key, value.secret, size)
+    if meta["stream"].service == FLICKR:
+        if email:
+            return "http://farm%s.staticflickr.com/%s/%s_%s.jpg" % (value.farm, value.server, value.foreign_key, value.secret)
+        if value.date_uploaded >= datetime(2012, 03, 01):
+            size = "c"
+        return "http://farm%s.staticflickr.com/%s/%s_%s_%s.jpg" % (value.farm, value.server, value.foreign_key, value.secret, size)
+    elif meta["stream"].service == INSTAGRAM:
+        if email:
+            return value.low_resolution
+        return value.standard_resolution
+    else:
+        return ""
 
 @app.template_filter("permalink")
 def permalink_filter(value, meta=None, email=False):
     if email:
         return url_for("display_digest", digest_encoded=meta["digest_encoded"])
-    return "http://www.flickr.com/photos/%s/%s" % (meta["stream"].foreign_key, value.foreign_key)
+    if meta["stream"].service == FLICKR:
+        return "http://www.flickr.com/photos/%s/%s" % (meta["stream"].foreign_key, value.foreign_key)
+    elif meta["stream"].service == INSTAGRAM:
+        return value.link
+    else:
+        return ""
 
 @app.template_filter("days2words")
 def days2words_filter(value):
@@ -214,3 +271,12 @@ def nl2br(eval_ctx, value):
 @app.template_filter("datetime")
 def format_datetime(value):
     return value.strftime("%A %d %B %Y")
+
+@app.template_filter("service2name")
+def service2name_filter(value):
+    if value.service == FLICKR:
+        return "Flickr"
+    elif value.service == INSTAGRAM:
+        return "Instagram"
+    else:
+        return "Unknown service"
