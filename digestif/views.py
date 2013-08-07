@@ -134,7 +134,7 @@ def landing():
         if form.stream.data == "flickr":
             return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', email=form.email.data))
         elif form.stream.data == "instagram":
-            return instagram_oauth.authorize(callback="http://localhost:5000"+url_for('handle_instagram_authorization', email=form.email.data))
+            return instagram_oauth.authorize(callback="http://digestif.me"+url_for('handle_instagram_authorization', email=form.email.data))
         else:
             return "service unsupported"
     flash_errors(form)
