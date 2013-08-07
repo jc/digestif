@@ -44,5 +44,15 @@ flickr_oauth = oauth.remote_app('flickr',
     consumer_key='2e5cac297c49277e40b8f518713ae9c0',
     consumer_secret='8f5a126939b68737',
     request_token_params={"perms" : "read"})
+instagram_oauth = oauth.remote_app('instagram',
+                                   base_url='https://api.instagram.com/v1/',
+                                   request_token_url=None,
+                                   access_token_url='https://api.instagram.com/oauth/access_token',
+                                   access_token_params={"grant_type":"authorization_code"},
+                                   access_token_method="POST",
+                                   authorize_url='https://api.instagram.com/oauth/authorize',
+                                   consumer_key='33cd59cf6ddb47db97b21c5b6da8f109',
+                                   consumer_secret='2372e400711a43acad00fe852eafcab0'
+)
 
 import digestif.views

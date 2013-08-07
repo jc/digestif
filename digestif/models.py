@@ -7,6 +7,7 @@ from digestif import db, app
 from digestif.constants import *
 from digestif import hash_gen
 
+
 def generate_secret():
     return "secret"
 
@@ -52,8 +53,11 @@ class Stream(Base, db.Model):
         return 'subscribe', {'stream_encoded': encoded}
 
     def remote_url(self):
+        from digestif import processes
         if self.service == FLICKR:
             return "http://www.flickr.com/photos/{}".format(self.foreign_key)
+        elif self.service == INSTAGRAM:
+            return "http://instagram.com/{}".format(processes.instagram_metadata(self, True))
         return "/"
 
  
@@ -92,6 +96,21 @@ class FlickrPhoto(Base, db.Model):
     video = db.Column(db.Boolean)
     stream = db.relationship("Stream")
     
+class InstagramPhoto(Base, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    stream_id = db.Column(db.Integer, db.ForeignKey("stream.id"), nullable=False)
+    date_taken = db.Column(db.DateTime, nullable=False) #created_time
+    date_uploaded = db.Column(db.DateTime, nullable=False) #created_time
+    date_fetched = db.Column(db.DateTime, default=datetime.datetime.now)
+    title = db.Column(db.String(255))
+    description = db.Column(db.Text)
+    foreign_key = db.Column(db.String(255))
+    low_resolution = db.Column(db.String(255))
+    standard_resolution = db.Column(db.String(255))
+    thumbnail = db.Column(db.String(255))
+    video = db.Column(db.Boolean)
+    link = db.Column(db.String(255))
+    stream = db.relationship("Stream")    
 
 def make_user(email, user=None):
     """ Make or get user by email address """
@@ -125,12 +144,12 @@ def make_subscription(stream, user, frequency):
         app.logger.info("updated subscription frequency id: %s, user id: %s, stream id: %s" % (subscription.id, subscription.user_id, subscription.stream_id))
     return subscription
 
-def make_stream(foreign_key, user, oauth_token, oauth_token_secret, last_checked=None): 
+def make_stream(foreign_key, user, oauth_token, oauth_token_secret, last_checked=None, service=FLICKR): 
     stream = Stream.query.filter_by(foreign_key=foreign_key).first()
     if not stream:
         stream = Stream(user_id=user.id, oauth_token=oauth_token,
                         oauth_token_secret=oauth_token_secret, foreign_key=foreign_key,
-                        service=FLICKR)
+                        service=service)
         if last_checked:
             stream.last_checked = last_checked
         db.session.add(stream)
