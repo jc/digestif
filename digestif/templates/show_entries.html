@@ -12,7 +12,7 @@
     <div class="photo">
       {% if entry.video %}
       <video width="800" poster="{{ entry|imgurl(meta=meta, email=email) }}" controls>
-        <source src="{{ entry|videosrc }}" type="video/mp4" />
+        <source src="{{ entry|videosrc(meta=meta) }}" type="video/mp4" />
         <a href="{{ entry|permalink(email=email, meta=meta) }}"><img src="/static/play.png" /></a>
       </video>
       {% else %}

@@ -202,7 +202,7 @@ def flash_errors(form):
 #
 
 @app.template_filter("videosrc")
-def videosrc_filter(value, size="hd"):
+def videosrc_filter(value, size="hd", meta=None):
     if value.video and meta["stream"].service == INSTAGRAM:
         return value.standard_resolution
     elif value.video and meta["stream"].service == FLICKR:
