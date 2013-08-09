@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from flask import render_template
 import premailer
 import sendgrid
+import mandrill
 
 from digestif import flickr_oauth as flickr
 from digestif import instagram_oauth as instagram
@@ -243,22 +244,42 @@ def send_digest(digest, env):
                                               InstagramPhoto.stream_id == stream.id).order_by(InstagramPhoto.date_taken).all()
     else:
         entries = None
+    user = subscription.user
+
     meta = {"stream" : stream, "digest_encoded" : digest_encoded, "digest" : digest}
     template = env.get_template("email.html")
     html = template.render(entries=entries, meta=meta, email=True)
     html_email = premailer.transform(html, base_url="http://digestif.me")
-    s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)
-    
-    user = subscription.user
-    message = sendgrid.Message(("digests@digestif.me", "Digestif"), "A new photo digest from %s" % metadata(stream),
-                               "Digestif\n\nYou have a new digest of photographs to view from %s. View this email as HTML or visit http://digestif.me/digest/%s\n\nWant to change the delivery rate? Adjust your subscription at http://digestif.me%s\n\nDigestif converts your photostream into an email digest. Your friends and family subscribe and decide how frequently they want digests delivered. That way, when you post new photographs your friends and family are notified on their terms." % (metadata(stream), digest_encoded, stream.subscribe_url()),
-                               html_email)
-    message.add_to(user.email)
-    if s.web.send(message):
-        digest.delivered = True
+    title = "A new photo digest from %s" % metadata(stream)
+    text_email =  "Digestif\n\nYou have a new digest of photographs to view from %s. View this email as HTML or visit http://digestif.me/digest/%s \n\nWant to change the delivery rate? Adjust your subscription at http://digestif.me%s\n\n Digestif converts your photostream into an email digest. Your friends and family subscribe and decide how frequently they want digests delivered. That way, when you post new photographs your friends and family are notified on their terms." % (metadata(stream), digest_encoded, stream.subscribe_url())
+
+    if mandrill_send(user.email, title, text_email, html_email):
+        #digest.delivered = True
         app.logger.info("Digest delivered to %s", user.email)
         db.session.commit()
 
+def sendgrid_send(to_address, title, text, html):
+    s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)
+    message = sendgrid.Message(("digests@digestif.me", "Digestif"), title, text, html)
+    message.add_to(to_address)
+    return s.web.send(message)
+    
+def mandrill_send(to_address, title, text, html):
+    m = mandrill.Mandrill("u7QhUO63JCM5j0ugrA8jBQ")
+    #m = mandrill.Mandrill("6CHrGg6ahGiavItPDd1aDg") #test account
+    msg = {"from_email": "digests@digestif.me",
+           "from_name" : "Digestif",
+           "to": [{"email" : to_address}],
+           "subject": title,
+           "text" : text,
+           "html" : html}
+    result = m.messages.send(msg)
+    if result[0]["status"] == "sent":
+        return True
+    else:
+        app.logger.info("Failed to send email: %s", result)
+        return False
+        
 
 
 
