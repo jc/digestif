@@ -13,9 +13,13 @@ Instagram. We'll generate a subscription form.</p>
 <form id="create" method="POST" action="{{ url_for("landing") }}">
 {{ form.email(placeholder="Your email address", type="email", required="true") }}
 <span data-toggle="tooltip" title="flickr" service="flickr" class="service social inactive">&#62211;</span> <span data-toggle="tooltip" title="Instagram" service="instagram" class="service social inactive">&#62253;</span> <button class="action">Create</button>
+<div id="email-suggestion" style="display:none">
+Did you mean <a class="suggested-email"></a>?
+</div>
 {{ form.hidden_tag() }}
 </form>
 </div>
+
 <script>
     $(".service").tooltip();
     $(".service").click(function () {
@@ -23,6 +27,26 @@ Instagram. We'll generate a subscription form.</p>
        $(".service").removeClass("active").addClass("inactive");
        $(this).addClass("active").removeClass("inactive");
     });
+</script>
+
+<script src="{{ url_for('static', filename="mailcheck.min.js", _external=True) }}"></script>
+
+<script>
+$('#email').on('blur', function() {
+  $(this).mailcheck({
+    suggested: function(element, suggestion) {     
+      $('#email-suggestion a').html(suggestion.full);
+      $('#email-suggestion').slideDown();
+      $('#email-suggestion a').on('click', function() {
+         $('#email').val(suggestion.full);
+         $('#email-suggestion').slideUp();
+      });
+    },
+    empty: function(element) {
+       $('#email-suggestion').slideUp();
+    }
+  });
+});
 </script>
 
 

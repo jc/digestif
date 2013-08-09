@@ -59,6 +59,7 @@ button.action {
 }
 
 .center {
+    font-size: 1.2em;
     text-align: right;
 }
 
@@ -357,3 +358,17 @@ button.close {
   border-width: 0 5px 5px;
 }
 
+
+#email-suggestion {
+  font-size: 16px;
+}
+
+.suggested-email {
+  text-decoration:underline;
+  cursor: pointer;
+}
+
+
+.address {
+  
+}
