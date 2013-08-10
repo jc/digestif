@@ -52,6 +52,10 @@ button.action {
     line-height: 28px;
 }
 
+button.negative {
+    background: #b75b5b;
+}
+
 .narrow {
     width: 70%;
     margin: auto;

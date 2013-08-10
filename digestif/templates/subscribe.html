@@ -11,24 +11,31 @@
 </form>
 
 <script>
-   var options = ["daily", "every two days", "every three days", "weekly", "biweekly", "monthly", "never (unsubscribe)"];
+   var options = ["daily", "every two days", "every three days", "weekly", "biweekly", "monthly", "never"];
    var values = [1, 2, 3, 7, 14, 30, 0];
-   var index = 3;
-   $(".option").ready(function () {
+   function setOptions(i) {
        $(".option").attr("value", options[index]);
        $("#frequency").attr("value", values[index]);
+       if (index == values.length - 1) $("button.action").html("Unsubscribe").addClass("negative");
+       else $("button.action").html("Subscribe").removeClass("negative");  
+   }
+   {% if unsubscribe %}
+   var index = values.length - 1;
+   {% else %}
+   var index = 3;
+   {% endif %}
+   $(".option").ready(function () {
+       setOptions(index);
    });
    $("#more").click(function () {
        index = index + 1;
        if (index >= values.length) index = values.length - 1;
-       $(".option").attr("value", options[index]);
-       $("#frequency").attr("value", values[index]);
+       setOptions(index);
     });
     $("#less").click(function () {
        index = index - 1;
        if (index < 0) index = 0;
-       $(".option").attr("value", options[index]);
-       $("#frequency").attr("value", values[index]);
+       setOptions(index);
     });
 </script>
 
