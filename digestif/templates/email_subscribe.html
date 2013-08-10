@@ -4,6 +4,6 @@
 
 <p>We will start sending digests of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|service2name }}</a> {{ subscription.frequency|days2words }} when there are new photographs. Add us to your contact list to avoid our emails being marked as spam.</p>
 
-<p>If you received this email by mistake, <a href="{{ stream.subscribe_url() }}">adjust your subscription</a>.</p>
+<p>If you received this email by mistake, <a href="{{ stream.subscribe_url() }}?address={{ subscription.user.email }}">adjust your subscription</a> or <a href="{{ stream.subscribe_url() }}?address={{ subscription.user.email }}&unsubscribe=1">unsubscribe</a>.</p>
 
 {% endblock %}
