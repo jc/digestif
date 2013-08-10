@@ -4,7 +4,7 @@
 {% block body %}
 
 <form id="subscribe" method="POST" action="{{ stream.subscribe_url() }}">
-<div class="center"><a href="{{ stream.remote_url() }}">{{ stream|service2name }} photographs by {{ stream|stream2name }}</a><br /> should be delivered to<br/> {{ form.email(placeholder="email address", size="30", type="email", required="true", style="text-align: right") }}<br/>
+<div class="center"><a href="{{ stream.remote_url() }}">{{ stream|service2name }} photographs by {{ stream|stream2name }}</a><br /> should be delivered to<br/> {{ form.email(placeholder="email address", size="30", type="email", required="true", style="text-align: right", value=address) }}<br/>
 <div id="email-suggestion" style="display:none">Did you mean <a class="suggested-email"></a>?<br/></div>
 <span id="more" class="service inactive">&#8854;</span><input type="text" class="option" value="every day" readonly="true"><span id="less" class="service inactive">&oplus;</span><br/>when there are new photographs<br/><button class="action">Subscribe</button></div>
 {{ form.hidden_tag() }}

@@ -122,9 +122,13 @@ def subscribe(stream_encoded):
                                user=user)
     else:
         flash_errors(subscribe_form)
+        unsubscribe = False
+        address = request.args.get("address", "")
+        if request.args.get("unsubscribe", None) == "1":
+            unsubscribe = True
         return render_template("subscribe.html", 
                                form=subscribe_form, 
-                               stream=stream)
+                               stream=stream, unsubscribe=unsubscribe, address=address)
 
 
 @app.route("/", methods=("GET", "POST"))
