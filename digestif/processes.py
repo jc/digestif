@@ -199,8 +199,7 @@ def create_flickr_photo(photo, stream):
         # already present
         pass
     return flickrphoto
-                              
-               
+
 def create_digest(subscription, previous_dt=None, today_dt=None):
     if not subscription.active:
         return None
@@ -257,6 +256,35 @@ def send_digest(digest, env):
         #digest.delivered = True
         app.logger.info("Digest delivered to %s", user.email)
         db.session.commit()
+
+def send_welcome(subscription, stream, env):
+    user = subscription.user
+    template = env.get_template("email_subscribe.html")
+    html = template.render(stream=stream, subscription=subscription)
+    html_email = premailer.transform(html, base_url="http://digestif.me")
+    title = "Welcome to %s's photo digests!" % metadata(stream)
+    text_email = "Welcome to Digestif!\n\nWe will start sending digests of %s's photographs. Add us to your contact list to avoid our emails being marked as spam.\n\nIf you received this email by mistake, visit http://digestif.me%s to adjust your subscription." % (metadata(stream),  stream.subscribe_url())
+
+    if mandrill_send(user.email, title, text_email, html_email):
+        app.logger.info("Subscription welcome delivered to %s", user.email)
+        return True
+    else:
+        return False
+
+
+def send_stream(user, stream, env):
+    template = env.get_template("email_stream.html")
+    html = template.render(stream=stream)
+    html_email = premailer.transform(html, base_url="http://digestif.me")
+    title = "Share your photographs with friends and family"
+    text_email = "Welcome to Digestif!\n\nWe will make your photographs into great email digests.\n\nTell your friends and family to visit http://digestif.me%s to subscribe. You may want to subscribe too!" % stream.subscribe_url()
+    if mandrill_send(user.email, title, text_email, html_email):
+        app.logger.info("Stream welcome delivered to %s", user.email)
+        return True
+    else:
+        return False
+        
+
 
 def sendgrid_send(to_address, title, text, html):
     s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)
