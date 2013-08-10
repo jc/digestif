@@ -53,5 +53,22 @@ def send():
     for digest in Digest.query.filter(Digest.delivered == False).all():
         processes.send_digest(digest, app.jinja_env)
 
+@manager.command
+def stream_welcome(streamid):
+    "Sends the welcome for a new stream"
+    stream = Stream.query.filter(Stream.id == streamid).first()
+    if stream:
+        user = stream.user
+        processes.send_stream(user, stream, app.jinja_env)
+
+@manager.command
+def subscription_welcome(subscriptionid):
+    "Sends the welcome for a new subscription"
+    subscription = Subscription.query.filter(Subscription.id == subscriptionid).first()
+    if subscription:
+        stream = subscription.stream
+        processes.send_welcome(subscription, stream, app.jinja_env)
+
+
 if __name__ == "__main__":
     manager.run()

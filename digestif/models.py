@@ -137,6 +137,8 @@ def make_subscription(stream, user, frequency):
         db.session.add(subscription)
         db.session.commit()
         app.logger.info("created subscription id: %s, user id: %s, stream id: %s" % (subscription.id, subscription.user_id, subscription.stream_id))
+        from digestif import processes
+        processes.send_welcome(subscription, subscription.stream, app.jinja_env)
     elif subscription.frequency != frequency:
         subscription.frequency = frequency
         db.session.add(subscription)
@@ -155,6 +157,8 @@ def make_stream(foreign_key, user, oauth_token, oauth_token_secret, last_checked
         db.session.add(stream)
         db.session.commit()
         app.logger.info("created stream id: %s, key: %s" % (stream.id, stream.foreign_key))
+        from digestif import processes
+        processes.send_stream(stream.user, stream, app.jinja_env)
     elif stream.oauth_token != oauth_token and stream.oauth_token_secret != oauth_token_secret:
         stream.oauth_token = oauth_token
         stream.oauth_token_secret = oauth_token_secret

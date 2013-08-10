@@ -282,27 +282,7 @@ ul.sidebar li a h1,ul.sidebar li a h2,ul.sidebar li a h3,ul.sidebar li a h4,ul.s
 			<table>
 				<tr>
 					<td>
-<p>Here is your latest digest of photographs by <a href="{{ meta["stream"].remote_url() }}">{{ meta["stream"]|stream2name }}</a>. Having trouble viewing this email? <a href="http://digestif.me/digest/{{ meta["digest_encoded"] }}">View on the web</a>.</p>
-{% for entry in entries %}
-{% if entry.title %}
-<h4>{{ entry.title|safe }}</h4>
-{% endif %}
-                        <p class="date last">{{entry.date_taken|datetime}}</p>
-						<p class="image">{% if entry.video %}
-      <video width="500" poster="{{ entry|imgurl(meta=meta, email=email) }}" controls>
-        <source src="{{ entry|videosrc(size="site", meta=meta) }}" type="video/mp4" />
-        <a href="{{ entry|permalink(email=email, meta=meta) }}"><img src="http://digestif.me/static/play.png" /></a>
-      </video>
-      {% else %}<a href="{{ entry|permalink(email=email, meta=meta) }}"><img src="{{ entry|imgurl(meta=meta, email=email) }}" /></a>{% endif %}</p>
-      {% if entry.description %}
-        <p>{{ entry.description|nl2br|safe }}</p>
-      {% endif %}
-{% endfor %}
-
-						<!-- Callout Panel -->
-						<p class="callout">
-We are currently sending you digests {{ meta["digest"].subscription.frequency|days2words }} when there are new photographs. Want to change the delivery rate? <a href="{{ meta["stream"].subscribe_url() }}">Adjust your subscription or unsubscribe</a>.
-						</p><!-- /Callout Panel -->
+                      {% block body %}{% endblock %}
 					</td>
 				</tr>
 			</table>
