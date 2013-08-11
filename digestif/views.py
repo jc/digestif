@@ -148,6 +148,28 @@ def landing():
 def about():
     return render_template("about.html")
 
+@app.route("/stats/<stream_encoded>", methods=("GET", "POST"))
+def stats(stream_encoded):
+    values = None
+    try:
+        values = hash_gen.decrypt(str(stream_encoded)) #values stores user_id, stream_id
+    except TypeError:
+        app.logger.error("Error in hashids.decrypt! %s" % stream_encoded)
+    if values:
+        user_id, stream_id = values
+    else:
+        user_id, stream_id = None, -1
+
+    stream = Stream.query.filter_by(id=stream_id).first_or_404()
+
+    if stream.user_id != user_id:
+        app.logger.error("Mismatching user and stream! %s, %s" % (stream.user_id, user_id))
+        return "Mismatching user and stream!"
+
+    owner = stream.user.email
+    subscribers = Subscription.query.filter_by(stream_id=stream.id).filter(Subscription.frequency != 0).all()
+    return render_template("stats.html", stream=stream, owner=owner, subscribers=subscribers)
+
 
 @app.route("/_dump")
 def dump():
