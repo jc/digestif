@@ -33,7 +33,7 @@ def get_instagram_token(token=None):
 def handle_oauth_exception(error):
     return "<p>%s</p><p>%s</p><p>%s</p>" % (error.message, error.type, error.data)
 
-@app.route('/new/flickr')
+@app.route('/auth/flickr')
 @flickr_oauth.authorized_handler
 def handle_flickr_authorization(resp):
     if resp is None:
@@ -47,7 +47,10 @@ def handle_flickr_authorization(resp):
         app.logger.warning("no flickr auth %s, %s, %s" % (flickr_id, oauth_token, oauth_token_secret))
         return redirect(url_for("landing"))
     
+    session["digestif"] = {"a" : oauth_token }
+
     email = request.args.get("email")
+
     if email:
         user = None
         stream = Stream.query.filter_by(foreign_key=flickr_id).first()
@@ -61,9 +64,17 @@ def handle_flickr_authorization(resp):
         stream = make_stream(flickr_id, user, oauth_token, oauth_token_secret,
                              last_checked=datetime.utcnow())
         return redirect(stream.subscribe_url())
+
+    # stats means we redirect to statistics page
+    stats = request.args.get("stats")
+    if stats:
+        stream = Stream.query.filter_by(foreign_key=flickr_id).first()
+        if stream:
+            return redirect(url_for("stats", stream_encoded=hash_gen.encrypt(stream.user_id, stream.id)))
+
     return redirect(url_for("landing"))
 
-@app.route('/new/instagram')
+@app.route('/auth/instagram',  methods=("GET", "POST"))
 @instagram_oauth.authorized_handler
 def handle_instagram_authorization(resp):
     if resp is None:
@@ -76,6 +87,9 @@ def handle_instagram_authorization(resp):
         app.logger.warning("no instagram auth %s, %s, %s" % (instagram_user, access_token))
         return redirect(url_for("landing"))
     
+    session["digestif"] = {"a" : access_token }
+
+    # email means we create a new account
     email = request.args.get("email")
     if email:
         user = None
@@ -90,6 +104,14 @@ def handle_instagram_authorization(resp):
         stream = make_stream(instagram_id, user, access_token, "",
                              last_checked=datetime.utcnow(), service=INSTAGRAM)
         return redirect(stream.subscribe_url())
+
+    # stats means we redirect to statistics page
+    stats = request.args.get("stats")
+    if stats:
+        stream = Stream.query.filter_by(foreign_key=instagram_id).first()
+        if stream:
+            return redirect(url_for("stats", stream_encoded=hash_gen.encrypt(stream.user_id, stream.id)))
+
     return redirect(url_for("landing"))
 
 
@@ -161,6 +183,11 @@ def stats(stream_encoded):
         user_id, stream_id = None, -1
 
     stream = Stream.query.filter_by(id=stream_id).first_or_404()
+    if session.get('digestif') is None:
+        return redirect(url_for("stats_auth"))
+
+    if session.get("digestif")["a"] != stream.oauth_token:
+        return redirect(url_for("landing"))
 
     if stream.user_id != user_id:
         app.logger.error("Mismatching user and stream! %s, %s" % (stream.user_id, user_id))
@@ -169,6 +196,10 @@ def stats(stream_encoded):
     owner = stream.user.email
     subscribers = Subscription.query.filter_by(stream_id=stream.id).filter(Subscription.frequency != 0).all()
     return render_template("stats.html", stream=stream, owner=owner, subscribers=subscribers)
+
+@app.route("/stats/")
+def stats_auth():
+    return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', stats="1"))
 
 
 @app.route("/_dump")
