@@ -3,7 +3,7 @@
 
 {% block body %}
 
-<h2>Statistics for {{ stream|stream2name }}</h2>
+<h2>Statistics for {{ stream|stream2name }}</h2><span>[<a href="/signout">Sign out</a>]</span>
 
 <p>Subscribers: {{ subscribers|length }}</p>
 <p>Owner email: <code>{{ owner }}</code></p>

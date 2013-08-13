@@ -184,10 +184,14 @@ def stats(stream_encoded):
 
     stream = Stream.query.filter_by(id=stream_id).first_or_404()
     if session.get('digestif') is None:
-        return redirect(url_for("stats_auth"))
-
-    if session.get("digestif")["a"] != stream.oauth_token:
-        return redirect(url_for("landing"))
+        return redirect(url_for("stats_auth", service=stream.service))
+    oauth_token = session.get("digestif")["a"]
+    if oauth_token != stream.oauth_token:
+        # we'll 404 for now but should have better logic
+        # it is possible the token we have stored is invalid and the
+        # user may need to reauthorize
+        other_stream = Stream.query.filter_by(oauth_token=oauth_token).first_or_404()
+        return redirect(url_for("stats", stream_encoded=hash_gen.encrypt(other_stream.user_id, other_stream.id)))
 
     if stream.user_id != user_id:
         app.logger.error("Mismatching user and stream! %s, %s" % (stream.user_id, user_id))
@@ -199,8 +203,19 @@ def stats(stream_encoded):
 
 @app.route("/stats/")
 def stats_auth():
-    return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', stats="1"))
+    service = request.args.get("service", None)
+    if service == str(FLICKR):
+        return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', stats="1"))
+    elif service == str(INSTAGRAM):
+        return instagram_oauth.authorize(callback=url_for('handle_instagram_authorization', stats="1"))
+    else:
+        # TODO: display login
+        return str((service, FLICKR, INSTAGRAM))
 
+@app.route("/signout")
+def signout():
+    session.pop("digestif", None)
+    return redirect(url_for("landing"))
 
 @app.route("/_dump")
 def dump():
