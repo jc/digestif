@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from time import sleep
 
 from flask import render_template
 import premailer
@@ -51,6 +52,8 @@ def retrieve_photos(stream, since=None):
     # the stream
     if not since:
         since = stream.last_checked
+    app.logger.info("Checking stream: %s with since %s" % (stream.id, since))
+
     if stream.service == FLICKR:
         return flickr_retrieve_photos(stream, since)
     elif stream.service == INSTAGRAM:
@@ -62,7 +65,6 @@ def instagram_retrieve_photos(stream, since):
     query = "users/{}/media/recent".format(stream.foreign_key)
     data = {"min_timestamp" : int((since - datetime(1970, 1, 1)).total_seconds()),
             "access_token" : token[0]}
-    print data
     resp = instagram.get(query, data=data, token=token)
     more = True
     successful = False
@@ -74,6 +76,7 @@ def instagram_retrieve_photos(stream, since):
             resp = instagram.get(resp.data["pagination"]["next_url"], token=token)
         else:
             more = False
+        sleep(1)
     if resp.status != 200:
         successful = False
         app.logger.warning("Response code: %s; data: %s" % (resp.status, resp.data))
@@ -97,6 +100,7 @@ def flickr_retrieve_photos(stream, since=None):
              "format" : "json",
              "nojsoncallback" : 1,
              "min_upload_date" :  (since - datetime(1970, 1, 1)).total_seconds()}
+    print query
     # make the call and get the response
     resp = flickr.get('', data=query, token=token)
     
@@ -109,8 +113,10 @@ def flickr_retrieve_photos(stream, since=None):
         page = int(resp.data["photos"]["page"])
         pages = int(resp.data["photos"]["pages"])
 
+    more = True
+        
     # do the page dance!
-    while resp.status == 200 and page <= pages:       
+    while resp.status == 200 and more:
         for photo in resp.data["photos"]["photo"]:
             if photo["ispublic"] == "0":
                 continue
@@ -118,12 +124,16 @@ def flickr_retrieve_photos(stream, since=None):
                 continue
             flickrphoto = create_flickr_photo(photo, stream)
         query["page"] = page + 1
-        # dance dance dance
-        resp = flickr.get('', data=query, token=token)
-        if resp.status == 200:
-            page = int(resp.data["photos"]["page"])
-            pages = int(resp.data["photos"]["pages"])
+        if page >= pages:
+            more = False
+        else:
+            # dance dance dance
+            resp = flickr.get('', data=query, token=token)
+            if resp.status == 200:
+                page = int(resp.data["photos"]["page"])
+                pages = int(resp.data["photos"]["pages"])
         successful = True
+        sleep(1)
 
     if resp.status != 200:
         successful = False
@@ -139,7 +149,7 @@ def create_instagram_photo(photo, stream):
     id = photo["id"]
     date_taken = datetime.fromtimestamp(float(photo["created_time"]))
     title = ""
-    description = photo["caption"]["text"] if photo["caption"] else {}
+    description = photo["caption"]["text"] if photo["caption"] else ""
     link = photo["link"]
     if photo["type"] == "image":
         low_resolution = photo["images"]["low_resolution"]["url"]
@@ -253,7 +263,7 @@ def send_digest(digest, env):
     text_email =  "Digestif\n\nYou have a new digest of photographs to view from %s. View this email as HTML or visit http://digestif.me/digest/%s \n\nWant to change the delivery rate? Adjust your subscription at http://digestif.me%s\n\n Digestif converts your photostream into an email digest. Your friends and family subscribe and decide how frequently they want digests delivered. That way, when you post new photographs your friends and family are notified on their terms." % (metadata(stream), digest_encoded, stream.subscribe_url())
 
     if mandrill_send(user.email, title, text_email, html_email):
-        #digest.delivered = True
+        digest.delivered = True
         app.logger.info("Digest delivered to %s", user.email)
         db.session.commit()
 
