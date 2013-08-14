@@ -7,14 +7,18 @@
 
 <p>Subscribers: {{ subscribers|length }}</p>
 <p>Owner email: <code>{{ owner }}</code></p>
-<p>Subscribe URL: <a href="{{ stream.subscribe_url() }}">http://digestif.me{{ stream.subscribe_url() }}</a></p>
+<p>Subscription link: <a href="{{ stream.subscribe_url() }}">http://digestif.me{{ stream.subscribe_url() }}</a></p>
 
+{% if subscribers[0] is defined %}
 <p>Subscriber list:</p>
-
 <ul>
 {% for sub in subscribers %}
 <li><code>{{ sub.user.email }}</code></li>
 {% endfor %}
 </ul>
+{% else %}
+<p>You don't have any subscribers. Send your subscription link to people!</p>
+{% endif %}
+
 
 {% endblock %}

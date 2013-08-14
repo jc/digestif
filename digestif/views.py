@@ -208,9 +208,13 @@ def stats_auth():
         return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', stats="1"))
     elif service == str(INSTAGRAM):
         return instagram_oauth.authorize(callback=url_for('handle_instagram_authorization', stats="1"))
+    elif session.get('digestif'):
+        oauth_token = session.get("digestif")["a"]
+        other_stream = Stream.query.filter_by(oauth_token=oauth_token).first_or_404()
+        return redirect(url_for("stats", stream_encoded=hash_gen.encrypt(other_stream.user_id, other_stream.id)))
+
     else:
-        # TODO: display login
-        return str((service, FLICKR, INSTAGRAM))
+        return render_template("general_stats.html")
 
 @app.route("/signout")
 def signout():
