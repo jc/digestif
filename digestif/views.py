@@ -199,7 +199,10 @@ def stats(stream_encoded):
 
     owner = stream.user.email
     subscribers = Subscription.query.filter_by(stream_id=stream.id).filter(Subscription.frequency != 0).all()
-    return render_template("stats.html", stream=stream, owner=owner, subscribers=subscribers)
+    digest_counts = {}
+    for subscriber in subscribers:
+        digest_counts[subscriber] = Digest.query.filter_by(subscription_id=subscriber.id).count()
+    return render_template("stats.html", stream=stream, owner=owner, subscribers=subscribers, digest_counts=digest_counts)
 
 @app.route("/stats/")
 def stats_auth():

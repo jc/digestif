@@ -13,11 +13,11 @@
 <p>Subscriber list:</p>
 <ul>
 {% for sub in subscribers %}
-<li><code>{{ sub.user.email }}</code></li>
+<li><code>{{ sub.user.email }}</code> ({{ digest_counts[sub] }} {% if digest_counts[sub] == 1 %}digest{% else %}digests{% endif %} received)</li>
 {% endfor %}
 </ul>
 {% else %}
-<p>You don't have any subscribers. Send your subscription link to people!</p>
+<p>You don't have any subscribers yet! Tell people your subscription link.</p>
 {% endif %}
 
 
