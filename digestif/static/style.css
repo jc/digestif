@@ -39,6 +39,10 @@ input:focus:invalid {
     color: #b94a48;
 }
 
+a { color: #2ba6cb; }
+a:link { color: #2ba6cb; }
+a:visited { color: #cb2ba6; }
+
 button.action {
     margin-top: 15px;
     padding: 10px;
@@ -78,7 +82,7 @@ p {
     text-align: left;
 }
 
-h1 a {
+h1 a, h1 a:link, h1 a:visited {
     color: #000;
     text-decoration: none;
 }

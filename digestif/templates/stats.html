@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}Digestif{% endblock %}
+
+{% block body %}
+
+<h2>Statistics for {{ stream|stream2name }}</h2><span>[<a href="/signout">Sign out</a>]</span>
+
+<p>Subscribers: {{ subscribers|length }}</p>
+<p>Owner email: <code>{{ owner }}</code></p>
+<p>Subscription link: <a href="{{ stream.subscribe_url() }}">http://digestif.me{{ stream.subscribe_url() }}</a></p>
+
+{% if subscribers[0] is defined %}
+<p>Subscriber list:</p>
+<ul>
+{% for sub in subscribers %}
+<li><code>{{ sub.user.email }}</code> ({{ digest_counts[sub] }} {% if digest_counts[sub] == 1 %}digest{% else %}digests{% endif %} received)</li>
+{% endfor %}
+</ul>
+{% else %}
+<p>You don't have any subscribers yet! Tell people your subscription link.</p>
+{% endif %}
+
+
+{% endblock %}
