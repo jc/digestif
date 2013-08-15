@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}Digestif{% endblock %}
 {% block body %}
-
+<div class="text power">
 {% if subscription.frequency > 1 %}
 <p>Great! We'll start sending digests of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|service2name }}</a> to {{ user.email }}.</p>
 <p>But we'll only send them {{ subscription.frequency|days2words }}.</p>
@@ -12,5 +12,5 @@
 <p>Great! We'll start sending digests of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|service2name }}</a> to <code>{{ user.email }}</code> every day!</p>
 <p>Because our emails contain a lot of images they may get marked as spam. It can help to add <code>digests@digestif.me</code> to your contacts list.</p>
 {% endif %}
-
+</div>
 {% endblock %}

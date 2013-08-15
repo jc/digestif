@@ -5,6 +5,8 @@
 <head>
   <title>{% block title %}{% endblock %}</title>
   <link href="{{ url_for("static", filename="style.css", _external=True) }}" rel="stylesheet" />
+  <link href="http://fonts.googleapis.com/css?family=Cabin" rel="stylesheet" type="text/css">
+  <link href="http://fonts.googleapis.com/css?family=Droid+Serif" rel="stylesheet" type="text/css">
 
   {% block head %}{% endblock %}
    
@@ -16,16 +18,16 @@
 <body>
 
 <div id="sitewrap">
-<div id="header">
+<div id="header" class="text">
 <h1><a href="{{ url_for("landing", _external=True) }}">Digestif</a></h1>
 </div>
-<div id="content">
+<div id="text content">
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
 
 
     {% for category, message in messages %}
-<div class="alert alert-{{ category }}">
+<div class="text alert alert-{{ category }}">
 <button type="button" class="close" data-dismiss="alert">&times;</button>
 {{ message }}
 </div>
@@ -34,7 +36,7 @@
 {% endwith %}
 {% block body %}{% endblock %}
 </div>
-<div id="footnotes"><a href="/about">About</a></div>
+<div class="text" id="footnotes"><a href="/about">About</a></div>
 </div>
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
