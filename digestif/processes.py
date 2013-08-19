@@ -287,7 +287,7 @@ def send_stream(user, stream, env):
     html = template.render(stream=stream)
     html_email = premailer.transform(html, base_url="http://digestif.me")
     title = "Share your photographs with friends and family"
-    text_email = "Welcome to Digestif!\n\nWe will make your photographs into great email digests.\n\nTell your friends and family to visit http://digestif.me%s to subscribe. You may want to subscribe too!" % stream.subscribe_url()
+    text_email = "Welcome to Digestif!\n\nWe will make your photographs into great email digests.\n\nTell your friends and family to visit http://digestif.me%s to subscribe. You can keep track of your subscriber stats by visiting http://digestif.me/stats" % stream.subscribe_url()
     if mandrill_send(user.email, title, text_email, html_email):
         app.logger.info("Stream welcome delivered to %s", user.email)
         return True
