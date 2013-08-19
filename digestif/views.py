@@ -57,9 +57,9 @@ def handle_flickr_authorization(resp):
         if stream:
             user = stream.user
             if user.email != email:
-                flash("We've updated the email address associated with your Flickr account.", "info")
+                flash("We've updated the email address associated with your Flickr account. <a href\"http://digestif.me/stats\">View your subscriber statistics</a>", "info")
 
-        flash("Great! We are all set. Tell your friends and family to visit this page to subscribe.", "success")
+        flash("Great! We are all set. Tell your friends and family to visit this page to subscribe. <a href\"http://digestif.me/stats\">View your subscriber statistics</a>", "success")
         user = make_user(email, user=user)
         stream = make_stream(flickr_id, user, oauth_token, oauth_token_secret,
                              last_checked=datetime.utcnow())
