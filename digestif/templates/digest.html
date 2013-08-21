@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block title %}{{ stream|stream2name }} // Digestif{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block body %}
+
+{% for entry in entries %}
+  <div class="image">
+    <div class="text dateline"><p>{{entry.date_taken|datetime}}</p></div>
+    <div class="photo">
+      {% if entry.video %}
+      <video width="800" poster="{{ entry|imgurl }}" controls>
+        <source src="{{ entry|videosrc }}" type="video/mp4" />
+        <a href="{{ entry|permalink(digest_encoded=digest_encoded) }}"><img src="/static/play.png" /></a>
+      </video>
+      {% else %}
+      <a href="{{ entry|permalink(digest_encoded=digest_encoded) }}"><img src="{{ entry|imgurl }}" /></a>
+      {% endif %}
+    </div>
+    <div class="text caption">
+      {% if entry.title %}
+        <h3>{{ entry.title|safe }}</h3>
+      {% endif %}
+      {% if entry.description %}
+        <p>{{ entry.description|nl2br|safe }}</p>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+<div class="text">
+<hr/>
+<p>This is a digest of photographs by <a href="{{ stream.remote_url() }}">{{ stream|stream2name }}</a>.</p>
+<p>Do you want to receive similar digests? <a href="{{ stream.subscribe_url() }}">Subscribe</a>.</p>
+</div>
+
+{% endblock %}

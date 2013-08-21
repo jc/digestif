@@ -1,0 +1,24 @@
+{% extends "email_layout.html" %}
+{% block body %}
+<p>Here is your latest digest of photographs by <a href="{{ stream.remote_url() }}">{{ stream|stream2name }}</a>. Having trouble viewing this email? <a href="http://digestif.me/digest/{{ digest_encoded }}">View on the web</a>.</p>
+{% for entry in entries %}
+{% if entry.title %}
+<h4>{{ entry.title|safe }}</h4>
+{% endif %}
+<p class="date last">{{entry.date_taken|datetime}}</p>
+<p class="image">
+{% if entry.video %}<video width="500" poster="{{ entry|imgurl(email=email) }}" controls>
+    <source src="{{ entry|videosrc(size="site") }}" type="video/mp4" />
+    <a href="{{ entry|permalink(email=email, digest_encoded=digest_encoded) }}"><img src="http://digestif.me/static/play.png" /></a>
+  </video>
+{% else %}<a href="{{ entry|permalink(email=email, digest_encoded=digest_encoded) }}"><img src="{{ entry|imgurl(email=email) }}" /></a>{% endif %}</p>
+{% if entry.description %}
+<p>{{ entry.description|nl2br|safe }}</p>
+{% endif %}
+{% endfor %}
+
+<!-- Callout Panel -->
+<p class="callout">
+We are currently sending you digests {{ digest.subscription.frequency|days2words }} when there are new photographs. Want to change the delivery rate? <a href="{{ stream.subscribe_url() }}?address={{ digest.subscription.user.email }}">Adjust your subscription</a> or <a href="{{ stream.subscribe_url() }}?address={{ digest.subscription.user.email }}&unsubscribe=1">unsubscribe</a>.
+</p><!-- /Callout Panel -->
+{% endblock %}

@@ -7,10 +7,6 @@ from digestif import db, app
 from digestif.constants import *
 from digestif import hash_gen
 
-
-def generate_secret():
-    return "secret"
-
 def permalink(function):
     def inner(*args, **kwargs):
         endpoint, values = function(*args, **kwargs)
@@ -20,11 +16,10 @@ def permalink(function):
             return
     return inner
 
-
 class Base(object):
     def __repr__(self):
         return "<{0}: {1}>".format(self.__class__.__name__,
-                                  ", ".join(["%s=%r" % (key, getattr(self, key)) 
+                                  ", ".join(["{}={!r}".format(key, getattr(self, key))
                                              for key in sorted(self.__dict__.keys()) 
                                              if not key.startswith('_')]))
 
@@ -60,7 +55,6 @@ class Stream(Base, db.Model):
             return "http://instagram.com/{}".format(processes.instagram_metadata(self, True))
         return "/"
 
- 
 class Subscription(Base, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
@@ -119,34 +113,42 @@ def make_user(email, user=None):
     elif user.email != email:
         user.email = email
         db.session.commit()
-        app.logger.info("updated user id: %s, email: %s" % (user.id, user.email))
+        app.logger.info("updated user id: {}, email: {}".format(user.id, user.email))
     if not user:
         user = User(email=email)
         db.session.add(user)
         db.session.commit()
-        app.logger.info("created user id: %s, email: %s" % (user.id, user.email))
+        app.logger.info("created user id: {}, email: {}".format(user.id, user.email))
     return user
 
 def make_subscription(stream, user, frequency):
     """ Make or get or update subscription by frequency, user, stream """
     subscription = Subscription.query.filter(Subscription.user_id == user.id, 
-                              Subscription.stream_id == stream.id).first()
+                                             Subscription.stream_id == stream.id).first()
     if not subscription:
         subscription = Subscription(user_id=user.id, stream_id=stream.id,
-                                    frequency=frequency, last_digest=datetime.datetime.now() - datetime.timedelta(days=frequency))
+                                    frequency=frequency, 
+                                    last_digest=datetime.datetime.now() - datetime.timedelta(days=frequency))
         db.session.add(subscription)
         db.session.commit()
-        app.logger.info("created subscription id: %s, user id: %s, stream id: %s" % (subscription.id, subscription.user_id, subscription.stream_id))
+        app.logger.info(
+            "created subscription id: {}, user id: {}, stream id: {}".format(subscription.id,
+                                                                             subscription.user_id,
+                                                                             subscription.stream_id))
         from digestif import processes
         processes.send_welcome(subscription, subscription.stream, app.jinja_env)
     elif subscription.frequency != frequency:
         subscription.frequency = frequency
         db.session.add(subscription)
         db.session.commit()
-        app.logger.info("updated subscription frequency id: %s, user id: %s, stream id: %s" % (subscription.id, subscription.user_id, subscription.stream_id))
+        app.logger.info(
+            "updated subscription frequency id: {}, user id: {}, stream id: {}".format(subscription.id,
+                                                                                       subscription.user_id,
+                                                                                       subscription.stream_id))
     return subscription
 
 def make_stream(foreign_key, user, oauth_token, oauth_token_secret, last_checked=None, service=FLICKR): 
+    """ Makes a new stream or update the oauth credentials for an existing stream """
     stream = Stream.query.filter_by(foreign_key=foreign_key).first()
     if not stream:
         stream = Stream(user_id=user.id, oauth_token=oauth_token,
@@ -156,7 +158,7 @@ def make_stream(foreign_key, user, oauth_token, oauth_token_secret, last_checked
             stream.last_checked = last_checked
         db.session.add(stream)
         db.session.commit()
-        app.logger.info("created stream id: %s, key: %s" % (stream.id, stream.foreign_key))
+        app.logger.info("created stream id: {}, key: {}".format(stream.id, stream.foreign_key))
         from digestif import processes
         processes.send_stream(stream.user, stream, app.jinja_env)
     elif stream.oauth_token != oauth_token and stream.oauth_token_secret != oauth_token_secret:
@@ -165,3 +167,14 @@ def make_stream(foreign_key, user, oauth_token, oauth_token_secret, last_checked
         db.session.commit()
     return stream
         
+def generate_secret():
+    return "secret"
+
+def service_name(service):
+    """ Returns service name based on the constants """
+    if service == FLICKR:
+        return "Flickr"
+    elif service == INSTAGRAM:
+        return "Instagram"
+    return None
+

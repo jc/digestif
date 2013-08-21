@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from time import sleep
 
-from flask import render_template
+from flask import render_template, abort
 import premailer
 import sendgrid
 import mandrill
@@ -28,16 +28,18 @@ def flickr_metadata(stream):
              "format" : "json",
              "nojsoncallback" : 1}
     # make the call and get the response
-    resp = flickr.get('', data=query, token=token)
+    resp = flickr.get("", data=query, token=token)
     
     if resp.status == 200:
         return resp.data["person"]["realname"]["_content"] or resp.data["person"]["username"]
+    app.logger.error("Error in flickr_metadata, {}, {}".format(resp.status, resp.data))
+    abort(502)
     return "Error"
     
 def instagram_metadata(stream, username=False):
     token = (stream.oauth_token, stream.oauth_token_secret)
     # build the query
-    query = "users/%s" % stream.foreign_key
+    query = "users/{}".format(stream.foreign_key)
     # make the call and get the response
     resp = instagram.get(query, token=token, data={"access_token" : token[0]})
     
@@ -45,6 +47,8 @@ def instagram_metadata(stream, username=False):
         if username:
             return resp.data["data"]["username"]
         return resp.data["data"]["full_name"] or resp.data["data"]["username"]
+    app.logger.error("Error in instagram_metadata, {}, {}".format(resp.status, resp.data))
+    abort(502)    
     return "Error"
 
 def retrieve_photos(stream, since=None):
@@ -52,7 +56,7 @@ def retrieve_photos(stream, since=None):
     # the stream
     if not since:
         since = stream.last_checked
-    app.logger.info("Checking stream: %s with since %s" % (stream.id, since))
+    app.logger.info("Checking stream: {} with since {}".format(stream.id, since))
 
     if stream.service == FLICKR:
         return flickr_retrieve_photos(stream, since)
@@ -76,21 +80,17 @@ def instagram_retrieve_photos(stream, since):
             resp = instagram.get(resp.data["pagination"]["next_url"], token=token)
         else:
             more = False
-        sleep(1)
+        sleep(1) # do not spam the api
     if resp.status != 200:
         successful = False
-        app.logger.warning("Response code: %s; data: %s" % (resp.status, resp.data))
+        app.logger.warning("Response code: {}; data: {}".format(resp.status, resp.data))
     if successful:
         stream.last_checked = now
         db.session.add(stream)
     db.session.commit()
     return resp.status
 
-def flickr_retrieve_photos(stream, since=None):
-    # if since date not specified we'll default to last time we checked
-    # the stream
-    if not since:
-        since = stream.last_checked
+def flickr_retrieve_photos(stream, since):
     now = datetime.utcnow()
     token = (stream.oauth_token, stream.oauth_token_secret)
     # build the query
@@ -100,21 +100,16 @@ def flickr_retrieve_photos(stream, since=None):
              "format" : "json",
              "nojsoncallback" : 1,
              "min_upload_date" :  (since - datetime(1970, 1, 1)).total_seconds()}
-    print query
     # make the call and get the response
-    resp = flickr.get('', data=query, token=token)
-    
+    resp = flickr.get("", data=query, token=token)
     successful = False
     page = None
     pages = None
-
     # on successful response get the paging data
     if resp.status == 200:
         page = int(resp.data["photos"]["page"])
         pages = int(resp.data["photos"]["pages"])
-
     more = True
-        
     # do the page dance!
     while resp.status == 200 and more:
         for photo in resp.data["photos"]["photo"]:
@@ -128,17 +123,15 @@ def flickr_retrieve_photos(stream, since=None):
             more = False
         else:
             # dance dance dance
-            resp = flickr.get('', data=query, token=token)
+            resp = flickr.get("", data=query, token=token)
             if resp.status == 200:
                 page = int(resp.data["photos"]["page"])
                 pages = int(resp.data["photos"]["pages"])
         successful = True
-        sleep(1)
-
+        sleep(1) # do not spam the api
     if resp.status != 200:
         successful = False
-        app.logger.warning("Response code: %s; data: %s" % (resp.status, resp.data))
-
+        app.logger.warning("Response code: {}; data: {}".format(resp.status, resp.data))
     if successful:
         stream.last_checked = now
         db.session.add(stream)
@@ -175,7 +168,7 @@ def create_instagram_photo(photo, stream):
         db.session.add(instagramphoto)
         stream.last_updated = datetime.now()
         db.session.commit()
-        app.logger.info("Added Instagram photo %s", id)
+        app.logger.info("Added Instagram photo {}".format(id))
     else:
         # already present
         pass
@@ -204,7 +197,7 @@ def create_flickr_photo(photo, stream):
         db.session.add(flickrphoto)
         stream.last_updated = datetime.now()
         db.session.commit()
-        app.logger.info("Added Flickr photo %s", id)
+        app.logger.info("Added Flickr photo {}".format(id))
     else:
         # already present
         pass
@@ -254,17 +247,15 @@ def send_digest(digest, env):
     else:
         entries = None
     user = subscription.user
-
-    meta = {"stream" : stream, "digest_encoded" : digest_encoded, "digest" : digest}
-    template = env.get_template("email.html")
-    html = template.render(entries=entries, meta=meta, email=True)
+    template = env.get_template("email_digest.html")
+    html = template.render(entries=entries, stream=stream, digest_encoded=digest_encoded, digest=digest, email=True)
     html_email = premailer.transform(html, base_url="http://digestif.me")
-    title = "A new photo digest from %s" % metadata(stream)
-    text_email =  "Digestif\n\nYou have a new digest of photographs to view from %s. View this email as HTML or visit http://digestif.me/digest/%s \n\nWant to change the delivery rate? Adjust your subscription at http://digestif.me%s\n\n Digestif converts your photostream into an email digest. Your friends and family subscribe and decide how frequently they want digests delivered. That way, when you post new photographs your friends and family are notified on their terms." % (metadata(stream), digest_encoded, stream.subscribe_url())
+    title = "A new photo digest from {}".format(metadata(stream))
+    text_email =  "Digestif\n\nYou have a new digest of photographs to view from {}. View this email as HTML or visit http://digestif.me/digest/{}\n\nWant to change the delivery rate? Adjust your subscription at http://digestif.me{}\n\n Digestif converts your photostream into an email digest. Your friends and family subscribe and decide how frequently they want digests delivered. That way, when you post new photographs your friends and family are notified on their terms.".format(metadata(stream), digest_encoded, stream.subscribe_url())
 
     if mandrill_send(user.email, title, text_email, html_email):
         digest.delivered = True
-        app.logger.info("Digest delivered to %s", user.email)
+        app.logger.info("Digest delivered to {}".format(user.email))
         db.session.commit()
 
 def send_welcome(subscription, stream, env):
@@ -272,30 +263,27 @@ def send_welcome(subscription, stream, env):
     template = env.get_template("email_subscribe.html")
     html = template.render(stream=stream, subscription=subscription)
     html_email = premailer.transform(html, base_url="http://digestif.me")
-    title = "Welcome to %s's photo digests!" % metadata(stream)
-    text_email = "Welcome to Digestif!\n\nWe will start sending digests of %s's photographs. Add us to your contact list to avoid our emails being marked as spam.\n\nIf you received this email by mistake, visit http://digestif.me%s to adjust your subscription." % (metadata(stream),  stream.subscribe_url())
+    title = "Welcome to {}'s photo digests!".format(metadata(stream))
+    text_email = "Welcome to Digestif!\n\nWe will start sending digests of {}'s photographs. Add us to your contact list to avoid our emails being marked as spam.\n\nIf you received this email by mistake, visit http://digestif.me{} to adjust your subscription.".format(metadata(stream),  stream.subscribe_url())
 
     if mandrill_send(user.email, title, text_email, html_email):
-        app.logger.info("Subscription welcome delivered to %s", user.email)
+        app.logger.info("Subscription welcome delivered to {}".format(user.email))
         return True
     else:
         return False
-
 
 def send_stream(user, stream, env):
     template = env.get_template("email_stream.html")
     html = template.render(stream=stream)
     html_email = premailer.transform(html, base_url="http://digestif.me")
     title = "Share your photographs with friends and family"
-    text_email = "Welcome to Digestif!\n\nWe will make your photographs into great email digests.\n\nTell your friends and family to visit http://digestif.me%s to subscribe. You can keep track of your subscriber stats by visiting http://digestif.me/stats" % stream.subscribe_url()
+    text_email = "Welcome to Digestif!\n\nWe will make your photographs into great email digests.\n\nTell your friends and family to visit http://digestif.me{} to subscribe. You can keep track of your subscriber stats by visiting http://digestif.me/stats".format(stream.subscribe_url())
     if mandrill_send(user.email, title, text_email, html_email):
-        app.logger.info("Stream welcome delivered to %s", user.email)
+        app.logger.info("Stream welcome delivered to {}".format(user.email))
         return True
     else:
         return False
         
-
-
 def sendgrid_send(to_address, title, text, html):
     s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)
     message = sendgrid.Message(("digests@digestif.me", "Digestif"), title, text, html)
@@ -315,9 +303,5 @@ def mandrill_send(to_address, title, text, html):
     if result[0]["status"] == "sent":
         return True
     else:
-        app.logger.info("Failed to send email: %s", result)
+        app.logger.info("Failed to send email: {}".format(result))
         return False
-        
-
-
-
