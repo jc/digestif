@@ -3,14 +3,16 @@
 {% block body %}
 <div class="text power">
 {% if subscription.frequency > 1 %}
-<p>Great! We'll start sending digests of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|stream2service }}</a> to {{ user.email }}.</p>
-<p>But we'll only send them {{ subscription.frequency|days2words }}.</p>
-<p>Our emails contain a lot of photographs. Add <code>digests@digestif.me</code> to your contacts list to avoid the emails being marked as spam.</p> 
+<p>Great!</p>
+
+<p> We'll send digests {{ subscription.frequency|days2words }} of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|stream2service }}</a> to {{ user.email }}.</p>
+
+<p>Our emails contain a lot of photographs. Add us to your contact lists to avoid our digests being marked as spam: digests@digestif.me</p>
 {% elif subscription.frequency == 0 %}
-<p>Too many digests of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|stream2service }}</a> for you? OK we'll stop sending them to <code>{{ user.email }}</code>.</p>
+<p>Too many digests of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|stream2service }}</a> for you? OK we'll stop sending them to {{ user.email }}.</p>
 {% else %}
-<p>Great! We'll start sending digests of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|stream2service }}</a> to <code>{{ user.email }}</code> every day!</p>
-<p>Our emails contain a lot of photographs. Add <code>digests@digestif.me</code> to your contacts list to avoid the emails being marked as spam.</p> 
+<p>Great! We'll start sending daily digests of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|stream2service }}</a> to {{ user.email }}.</p>
+<p>Our emails contain a lot of photographs. Add us to your contact lists to avoid our digests being marked as spam: digests@digestif.me</p>
 {% endif %}
 </div>
 {% endblock %}
