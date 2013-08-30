@@ -44,7 +44,7 @@ def handle_flickr_authorization(resp):
     session["digestif"] = {"a" : oauth_token }
     email = request.args.get("email")
     if email:
-        build_user_stream(email, flickr_id, FLICKR, oauth_token, oauth_token_secret)
+        stream = build_user_stream(email, flickr_id, FLICKR, oauth_token, oauth_token_secret)
         return redirect(stream.subscribe_url())
     # stats means we redirect to statistics page
     stats = request.args.get("stats")
@@ -69,7 +69,7 @@ def handle_instagram_authorization(resp):
     # email means we create a new account
     email = request.args.get("email")
     if email:
-        build_user_stream(email, instagram_id, INSTAGRAM, access_token, "")
+        stream = build_user_stream(email, instagram_id, INSTAGRAM, access_token, "")
         return redirect(stream.subscribe_url())
     # stats means we redirect to statistics page
     stats = request.args.get("stats")
@@ -89,16 +89,19 @@ def handle_oauth_exception(error):
 def build_user_stream(email, foreign_key, service, oauth_token, oauth_token_secret):
     user = None
     stream = Stream.query.filter_by(foreign_key=foreign_key).first()
-    service_name = stream2service_filter(stream)
     if stream:
-        user = user.user
+        service_name = stream2service_filter(stream)
+        user = stream.user
         if user.email != email:
-            flash("We've updated the email address associated with your {} account. <a href\"{}\">View your subscriber statistics</a>".format(service_name, url_for("stats_auth")), "info")            
-    flash("Great! We are all set. Tell your friends and family to visit this page to subscribe. <a href\"{}\">View your subscriber statistics</a>".format(url_for("stats_auth")), "success")
+            flash("We've updated the email address associated with your {} account. <a href=\"{}\">View your subscriber statistics</a>".format(service_name, url_for("stats_auth")), "info")
+        else:
+            flash("Tell your friends and family to visit this page to subscribe. <a href=\"{}\">View your subscriber statistics</a>".format(url_for("stats_auth")), "info")
+    else:
+        flash("Great! We are all set. Tell your friends and family to visit this page to subscribe. <a href=\"{}\">View your subscriber statistics</a>".format(url_for("stats_auth")), "success")
     user = make_user(email, user=user)
-    stream = make_stream(flickr_id, user, oauth_token, oauth_token_secret,
+    stream = make_stream(foreign_key, user, oauth_token, oauth_token_secret,
                          last_checked=datetime.utcnow())
-    return True
+    return stream
 
 #################
 ##### user  #####
