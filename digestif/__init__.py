@@ -1,12 +1,12 @@
 import os
 
 from flask import Flask
-
 from flask_oauth import OAuth
-
 from flask.ext.sqlalchemy import SQLAlchemy
 
 from hashids import hashids
+
+import keys
 
 # configuration
 
@@ -32,7 +32,7 @@ if not app.debug:
 db = SQLAlchemy(app)
 
 
-hash_gen = hashids("twenty five people ate in holland")
+hash_gen = hashids(keys.HASH_GEN)
 
 
 oauth = OAuth()
@@ -41,8 +41,8 @@ flickr_oauth = oauth.remote_app("flickr",
     request_token_url="http://www.flickr.com/services/oauth/request_token",
     access_token_url="http://www.flickr.com/services/oauth/access_token",
     authorize_url="http://www.flickr.com/services/oauth/authenticate",
-    consumer_key="2e5cac297c49277e40b8f518713ae9c0",
-    consumer_secret="8f5a126939b68737",
+    consumer_key=keys.FLICKR,
+    consumer_secret=keys.FLICKR_SECRET,
     request_token_params={"perms" : "read"})
 
 instagram_oauth = oauth.remote_app("instagram",
@@ -52,7 +52,7 @@ instagram_oauth = oauth.remote_app("instagram",
                                    access_token_params={"grant_type":"authorization_code"},
                                    access_token_method="POST",
                                    authorize_url="https://api.instagram.com/oauth/authorize",
-                                   consumer_key="33cd59cf6ddb47db97b21c5b6da8f109",
-                                   consumer_secret="2372e400711a43acad00fe852eafcab0")
+                                   consumer_key=keys.INSTAGRAM,
+                                   consumer_secret=keys.INSTAGRAM_SECRET)
 
 import digestif.views

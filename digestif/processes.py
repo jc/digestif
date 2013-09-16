@@ -11,6 +11,7 @@ from digestif import instagram_oauth as instagram
 from digestif.models import InstagramPhoto, FlickrPhoto, Digest, Subscription
 from digestif.constants import *
 from digestif import db, hash_gen, app
+from digestif import keys
 
 FLICKR_DATE = "%Y-%m-%d %H:%M:%S"
 
@@ -285,14 +286,14 @@ def send_stream(user, stream, env):
         return False
         
 def sendgrid_send(to_address, title, text, html):
-    s = sendgrid.Sendgrid("jclarke", "m07XIlX6B8TO", secure=True)
+    s = sendgrid.Sendgrid(keys.SENDGRID_USER, keys.SENDGRID, secure=True)
     message = sendgrid.Message(("digests@digestif.me", "Digestif"), title, text, html)
     message.add_to(to_address)
     return s.web.send(message)
     
 def mandrill_send(to_address, title, text, html):
-    m = mandrill.Mandrill("u7QhUO63JCM5j0ugrA8jBQ")
-    #m = mandrill.Mandrill("6CHrGg6ahGiavItPDd1aDg") #test account
+    m = mandrill.Mandrill(keys.MANDRILL)
+    #m = mandrill.Mandrill(keys.MANDRILL_TEST) # test account
     msg = {"from_email": "digests@digestif.me",
            "from_name" : "Digestif",
            "to": [{"email" : to_address}],
