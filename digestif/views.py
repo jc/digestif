@@ -245,21 +245,21 @@ def signout():
 #################
 
 # for the database lazy
-@app.route("/_dump")
-def dump():
-    data = ["<pre><code>"]
-    for stream in Stream.query.all():
-        data.append(hash_gen.encrypt(stream.user_id, stream.id))
-        data.append(escape(stream.__repr__()))
-    for user in User.query.all():
-        data.append(escape(user.__repr__()))
-    for subscription in Subscription.query.all():
-        data.append(escape(subscription.__repr__()))
-    for digest in Digest.query.all():
-        data.append(hash_gen.encrypt(digest.id))
-        data.append(escape(digest.__repr__()))
-    data.append("</code></pre>")
-    return "\n".join(data)
+# @app.route("/_dump")
+# def dump():
+#     data = ["<pre><code>"]
+#     for stream in Stream.query.all():
+#         data.append(hash_gen.encrypt(stream.user_id, stream.id))
+#         data.append(escape(stream.__repr__()))
+#     for user in User.query.all():
+#         data.append(escape(user.__repr__()))
+#     for subscription in Subscription.query.all():
+#         data.append(escape(subscription.__repr__()))
+#     for digest in Digest.query.all():
+#         data.append(hash_gen.encrypt(digest.id))
+#         data.append(escape(digest.__repr__()))
+#     data.append("</code></pre>")
+#     return "\n".join(data)
 
 
 #################
