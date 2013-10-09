@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from time import sleep
+import json
 
 from flask import render_template, abort
 import premailer
@@ -30,8 +31,9 @@ def flickr_metadata(stream):
              "nojsoncallback" : 1}
     # make the call and get the response
     resp = flickr.get("", data=query, token=token)
-    
-    if resp.status == 200:
+    if isinstance(resp.data, str):
+        resp.data = json.loads(resp.data)
+    if resp.status == 200 and resp.data["stat"] == "ok":
         return resp.data["person"]["realname"]["_content"] or resp.data["person"]["username"]
     app.logger.error("Error in flickr_metadata, {}, {}".format(resp.status, resp.data))
     abort(502)
@@ -106,13 +108,15 @@ def flickr_retrieve_photos(stream, since):
     successful = False
     page = None
     pages = None
+    if isinstance(resp.data, str):
+        resp.data = json.loads(resp.data)
     # on successful response get the paging data
-    if resp.status == 200:
+    if resp.status == 200 and resp.data["stat"] == "ok":
         page = int(resp.data["photos"]["page"])
         pages = int(resp.data["photos"]["pages"])
     more = True
     # do the page dance!
-    while resp.status == 200 and more:
+    while resp.status == 200 and more and resp.data["stat"] == "ok":
         for photo in resp.data["photos"]["photo"]:
             if photo["ispublic"] == "0":
                 continue
@@ -125,12 +129,14 @@ def flickr_retrieve_photos(stream, since):
         else:
             # dance dance dance
             resp = flickr.get("", data=query, token=token)
-            if resp.status == 200:
+            if isinstance(resp.data, str):
+                resp.data = json.loads(resp.data)
+            if resp.status == 200 and resp.data["stat"] == "ok":
                 page = int(resp.data["photos"]["page"])
                 pages = int(resp.data["photos"]["pages"])
         successful = True
         sleep(1) # do not spam the api
-    if resp.status != 200:
+    if resp.status != 200 or resp.data["stat"] != "ok":
         successful = False
         app.logger.warning("Response code: {}; data: {}".format(resp.status, resp.data))
     if successful:
