@@ -37,10 +37,10 @@ hash_gen = hashids(keys.HASH_GEN)
 
 oauth = OAuth()
 flickr_oauth = oauth.remote_app("flickr",
-    base_url="http://api.flickr.com/services/rest",
-    request_token_url="http://www.flickr.com/services/oauth/request_token",
-    access_token_url="http://www.flickr.com/services/oauth/access_token",
-    authorize_url="http://www.flickr.com/services/oauth/authenticate",
+    base_url="https://api.flickr.com/services/rest",
+    request_token_url="https://www.flickr.com/services/oauth/request_token",
+    access_token_url="https://www.flickr.com/services/oauth/access_token",
+    authorize_url="https://www.flickr.com/services/oauth/authenticate",
     consumer_key=keys.FLICKR,
     consumer_secret=keys.FLICKR_SECRET,
     request_token_params={"perms" : "read"})
