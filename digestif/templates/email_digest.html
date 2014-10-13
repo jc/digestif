@@ -1,7 +1,7 @@
 {% extends "email_layout.html" %}
 {% block body %}
 <p>Here is your latest digest of photographs by <a href="{{ stream.remote_url() }}">{{ stream|stream2name }}</a>. Having trouble viewing this email? <a href="http://digestif.me/digest/{{ digest_encoded }}">View on the web</a>.</p>
-{% for entry in entries %}
+{% for entry in entries[:max_images] %}
 {% if entry.title %}
 <h4>{{ entry.title|safe }}</h4>
 {% endif %}
@@ -17,6 +17,9 @@
 {% endif %}
 {% endfor %}
 
+{% if entries|length > max_images %}
+<p class="central"><a class="btn" href="{{ entry|permalink(email=email, digest_encoded=digest_encoded) }}">View {{ entries|length - max_images }} more photographs &raquo;</a></p>
+{% endif %}
 <!-- Callout Panel -->
 <p class="callout">
 We are currently sending you digests {{ digest.subscription.frequency|days2words }} when there are new photographs. Want to change the delivery rate? <a href="{{ stream.subscribe_url() }}?address={{ digest.subscription.user.email }}">Adjust your subscription</a> or <a href="{{ stream.subscribe_url() }}?address={{ digest.subscription.user.email }}&unsubscribe=1">unsubscribe</a>.
