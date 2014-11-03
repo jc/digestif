@@ -22,9 +22,12 @@
    }
    {% if unsubscribe %}
    var index = values.length - 1;
+   {% elif frequency_index != None %}
+   var index = values.indexOf({{ frequency_index }});
    {% else %}
    var index = 3;
    {% endif %}
+   index = index == -1 ? 3 : index;
    $(".option").ready(function () {
        setOptions(index);
    });

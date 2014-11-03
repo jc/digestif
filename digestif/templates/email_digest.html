@@ -22,6 +22,6 @@
 {% endif %}
 <!-- Callout Panel -->
 <p class="callout">
-We are currently sending you digests {{ digest.subscription.frequency|days2words }} when there are new photographs. Want to change the delivery rate? <a href="{{ stream.subscribe_url() }}?address={{ digest.subscription.user.email }}">Adjust your subscription</a> or <a href="{{ stream.subscribe_url() }}?address={{ digest.subscription.user.email }}&unsubscribe=1">unsubscribe</a>.
+We are currently sending you digests {{ digest.subscription.frequency|days2words }} when there are new photographs. Want to change the delivery rate? <a href="{{ stream.subscribe_url() }}?address={{ digest.subscription.user.email }}&f={{ digest.subscription.frequency }}">Adjust your subscription</a> or <a href="{{ stream.subscribe_url() }}?address={{ digest.subscription.user.email }}&unsubscribe=1">unsubscribe</a>.
 </p><!-- /Callout Panel -->
 {% endblock %}

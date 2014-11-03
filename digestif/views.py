@@ -148,9 +148,14 @@ def subscribe(stream_encoded):
         address = request.args.get("address", "")
         if request.args.get("unsubscribe", None) == "1":
             unsubscribe = True
+        frequency_index = request.args.get("f", None)
+        try:
+            frequency_index = int(frequency_index)
+        except ValueError:
+            frequency_index = None
         return render_template("subscribe.html",
                                form=subscribe_form,
-                               stream=stream, unsubscribe=unsubscribe, address=address)
+                               stream=stream, unsubscribe=unsubscribe, address=address, frequency_index=frequency_index)
 
 @app.route("/digest/<digest_encoded>")
 def display_digest(digest_encoded):
