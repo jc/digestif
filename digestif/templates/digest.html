@@ -2,9 +2,19 @@
 {% block title %}{{ stream|stream2name }} // Digestif{% endblock %}
 
 {% block head %}
+<meta property="og:url" content="http://digestif.me/digest/{{ digest_encoded }}"/>
+<meta property="og:image" content="{{ entries[0]|imgurl }}"/>
+<meta property="og:title" content="{{ entries|length }} photographs by {{ stream|stream2name }}"/>
+<meta property="og:description" content="Digestif is a simple way to create and share photographs by email. Subscribe to future photo digests or create your own."
+<meta property="og:site_name" content="Digestif" />
+<meta name="twitter:card" content="summary_large_image" />
 {% endblock %}
 
 {% block body %}
+<div class="text">
+<p>You are viewing a digest of photographs by <a href="{{ stream.remote_url() }}">{{ stream|stream2name }}</a>.</p>
+<p><a href="{{ stream.subscribe_url() }}">Subscribe</a> to receive future digests via email.</p>
+</div>
 
 {% for entry in entries %}
   <div class="image">
@@ -29,10 +39,4 @@
     </div>
   </div>
 {% endfor %}
-<div class="text">
-<hr/>
-<p>This is a digest of photographs by <a href="{{ stream.remote_url() }}">{{ stream|stream2name }}</a>.</p>
-<p>Do you want to receive similar digests? <a href="{{ stream.subscribe_url() }}">Subscribe</a>.</p>
-</div>
-
 {% endblock %}
