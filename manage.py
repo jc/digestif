@@ -30,7 +30,10 @@ def update(since=None):
         since = datetime.strptime(since, "%Y%m%d")
 
     for stream in Stream.query.all():
-        processes.retrieve_photos(stream, since=since)
+        try:
+            processes.retrieve_photos(stream, since=since)
+        except:
+            app.logger.error("Error updating stream: {}".format(stream.id), exc_info=True)
 
 @manager.command
 def generate(today=None, previous=None, imprecise=False):
@@ -45,13 +48,19 @@ def generate(today=None, previous=None, imprecise=False):
 
     for subscription in Subscription.query.all():
         if subscription.active and subscription.frequency != 0:
-            digest = processes.create_digest(subscription, previous_dt=previous, today_dt=today)
+            try:
+                digest = processes.create_digest(subscription, previous_dt=previous, today_dt=today)
+            except:
+                app.logger.error("Error generating digest for subscription: {}".format(subscription.id), exc_info=True)
 
 @manager.command
 def send():
-    "Sends unsent digets"
+    "Sends unsent digest"
     for digest in Digest.query.filter(Digest.delivered == False).all():
-        processes.send_digest(digest, app.jinja_env)
+        try:
+            processes.send_digest(digest, app.jinja_env)
+        except:
+            app.logger.error("Error sending digest: {}".format(digest.id), exc_info=True)
 
 @manager.command
 def stream_welcome(streamid):
