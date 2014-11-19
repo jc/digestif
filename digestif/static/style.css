@@ -75,6 +75,10 @@ button.negative {
     text-align: right;
 }
 
+.right {
+    float: right;
+}
+
 p {
     font-size: 1.0em;
 }

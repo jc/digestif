@@ -2,17 +2,19 @@
 {% block title %}{{ stream|stream2name }} // Digestif{% endblock %}
 
 {% block head %}
-<meta property="og:url" content="http://digestif.me/digest/{{ digest_encoded }}"/>
+<meta property="og:url" content="{{ request.url }}"/>
 <meta property="og:image" content="{{ entries[0]|imgurl }}"/>
-<meta property="og:title" content="{{ entries|length }} photographs by {{ stream|stream2name }}"/>
-<meta property="og:description" content="Digestif is a simple way to create and share photographs by email. Subscribe to future photo digests or create your own."
+<meta property="og:title" content="{{ entries|length }} new photographs by {{ stream|stream2name }}"/>
+<meta property="og:description" content="Digestif is a simple way to create and share photographs by email. Subscribe to future photo digests or create your own." />
+<meta property="og:type" content="article" />
 <meta property="og:site_name" content="Digestif" />
 <meta name="twitter:card" content="summary_large_image" />
 {% endblock %}
 
 {% block body %}
 <div class="text">
-<p>You are viewing a digest of photographs by <a href="{{ stream.remote_url() }}">{{ stream|stream2name }}</a>.</p>
+<div class="right"><div class="fb-like" data-href="{{ request.url }}" data-layout="button" data-action="like" data-show-faces="true" data-share="true"></div><span>&nbsp;<a class="twitter-share-button" href="https://twitter.com/share" data-url="{{ request.url }}" data-size="medium" data-count="none" data-text="{{ entries|length }} photographs new by {{ stream|stream2name }}"/>Tweet</a></span></div>
+<p style="clear:both;">You are viewing a digest of photographs by <a href="{{ stream.remote_url() }}">{{ stream|stream2name }}</a>.</p>
 <p><a href="{{ stream.subscribe_url() }}">Subscribe</a> to receive future digests via email.</p>
 </div>
 
@@ -40,3 +42,5 @@
   </div>
 {% endfor %}
 {% endblock %}
+
+
