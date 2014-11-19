@@ -151,7 +151,7 @@ def subscribe(stream_encoded):
         frequency_index = request.args.get("f", None)
         try:
             frequency_index = int(frequency_index)
-        except ValueError:
+        except (ValueError, TypeError):
             frequency_index = None
         return render_template("subscribe.html",
                                form=subscribe_form,
