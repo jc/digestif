@@ -35,7 +35,7 @@ if not app.debug:
     from logging import Formatter
     from logging.handlers import SMTPHandler
     mail_handler = SMTPHandler(keys.SMTP_SERVER, 'server@digestif.me', ADMINS, 'Digestif has ERRORS', credentials=(keys.SMTP_USER, keys.SMTP_PASSWORD))
-    mail_handler.setLevel(logging.INFO)
+    mail_handler.setLevel(logging.ERROR)
     mail_handler.setFormatter(Formatter(mail_format))
     file_handler = TimedRotatingFileHandler("/home/jclarke/webapps/digestifweb/logs/digestifweb.log", when="W0", backupCount=10)
     file_handler.setLevel(logging.INFO)
