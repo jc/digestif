@@ -17,17 +17,33 @@ if os.environ.get("DIGESTIF_DEV"):
 else:
     app.config.from_object("digestif.config.ProductionConfig")
 
+ADMINS = ['james@jamesclarke.net']
+mail_format = '''
+Message type:       %(levelname)s
+Location:           %(pathname)s:%(lineno)d
+Module:             %(module)s
+Function:           %(funcName)s
+Time:               %(asctime)s
 
+Message:
+
+%(message)s
+'''
 if not app.debug:
     import logging
-    from logging.handlers import RotatingFileHandler
+    from logging.handlers import TimedRotatingFileHandler
     from logging import Formatter
-    file_handler = RotatingFileHandler("/home/jclarke/webapps/digestifweb/logs/digestifweb.log")
+    from logging.handlers import SMTPHandler
+    mail_handler = SMTPHandler(keys.SMTP_SERVER, 'server@digestif.me', ADMINS, 'Digestif has ERRORS', credentials=(keys.SMTP_USER, keys.SMTP_PASSWORD))
+    mail_handler.setLevel(logging.INFO)
+    mail_handler.setFormatter(Formatter(mail_format))
+    file_handler = TimedRotatingFileHandler("/home/jclarke/webapps/digestifweb/logs/digestifweb.log", when="W0", backupCount=10)
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(Formatter("%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"))
     app.logger.setLevel(logging.INFO)
     for logger in [app.logger, logging.getLogger("sqlalchemy")]:
         logger.addHandler(file_handler)
+        logger.addHandler(mail_handler)
 
 db = SQLAlchemy(app)
 
