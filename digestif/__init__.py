@@ -1,7 +1,7 @@
 import os
 
 from flask import Flask
-from flask_oauth import OAuth
+from flask_oauthlib.client import OAuth
 from flask.ext.sqlalchemy import SQLAlchemy
 
 from hashids import hashids
@@ -58,14 +58,12 @@ flickr_oauth = oauth.remote_app("flickr",
     access_token_url="https://www.flickr.com/services/oauth/access_token",
     authorize_url="https://www.flickr.com/services/oauth/authenticate",
     consumer_key=keys.FLICKR,
-    consumer_secret=keys.FLICKR_SECRET,
-    request_token_params={"perms" : "read"})
+    consumer_secret=keys.FLICKR_SECRET)
 
 instagram_oauth = oauth.remote_app("instagram",
                                    base_url="https://api.instagram.com/v1/",
                                    request_token_url=None,
                                    access_token_url="https://api.instagram.com/oauth/access_token",
-                                   access_token_params={"grant_type":"authorization_code"},
                                    access_token_method="POST",
                                    authorize_url="https://api.instagram.com/oauth/authorize",
                                    consumer_key=keys.INSTAGRAM,

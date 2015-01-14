@@ -112,7 +112,7 @@ def landing():
     form = SignUpStream()
     if form.validate_on_submit():
         if form.stream.data == "flickr":
-            return flickr_oauth.authorize(callback=url_for("handle_flickr_authorization", email=form.email.data))
+            return flickr_oauth.authorize(callback=url_for("handle_flickr_authorization", email=form.email.data), perms="read")
         elif form.stream.data == "instagram":
             return instagram_oauth.authorize(callback=url_for("handle_instagram_authorization", _external=True, email=form.email.data))
         else:
