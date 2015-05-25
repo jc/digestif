@@ -8,6 +8,17 @@ from hashids import hashids
 
 import keys
 
+import ssl
+
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    # Legacy Python that doesn't verify HTTPS certificates by default
+    pass
+else:
+    # Handle target environment that doesn't support HTTPS verification
+    ssl._create_default_https_context = _create_unverified_https_context
+
 # configuration
 
 app = Flask(__name__)
@@ -41,7 +52,7 @@ if not app.debug:
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(Formatter("%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"))
     app.logger.setLevel(logging.INFO)
-    for logger in [app.logger, logging.getLogger("sqlalchemy")]:
+    for logger in [app.logger, logging.getLogger("sqlalchemy"), logging.getLogger('flask_oauthlib')]:
         logger.addHandler(file_handler)
         logger.addHandler(mail_handler)
 
