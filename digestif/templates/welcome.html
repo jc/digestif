@@ -7,12 +7,12 @@
 
 <p> We'll send digests {{ subscription.frequency|days2words }} of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|stream2service }}</a> to {{ user.email }}.</p>
 
-<p>Our emails contain a lot of photographs. Add us to your contact lists to avoid our digests being marked as spam: digests@digestif.me</p>
+<p>Add <code>digestif@digestif.me</code> to your contact list to avoid our email digests being marked as spam.</p>
 {% elif subscription.frequency == 0 %}
 <p>Too many digests of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|stream2service }}</a> for you? OK we'll stop sending them to {{ user.email }}.</p>
 {% else %}
 <p>Great! We'll start sending daily digests of <a href="{{ stream.remote_url() }}">{{ stream|stream2name}}'s {{ stream|stream2service }}</a> to {{ user.email }}.</p>
-<p>Our emails contain a lot of photographs. Add us to your contact lists to avoid our digests being marked as spam: digests@digestif.me</p>
+<p>Add <code>digestif@digestif.me</code> to your contact list to avoid our email digests being marked as spam.</p>
 {% endif %}
 </div>
 {% endblock %}
