@@ -3,7 +3,7 @@ from datetime import datetime
 from datetime import timedelta
 
 from flask import session, request, g, redirect, url_for, abort, render_template, flash, escape
-from flask_oauth import OAuthException
+from flask_oauthlib.client import OAuthException
 
 from jinja2 import evalcontextfilter, Markup
 
@@ -35,6 +35,9 @@ def get_instagram_token(token=None):
 def handle_flickr_authorization(resp):
     if resp is None:
         return redirect(url_for("landing"))
+    if isinstance(resp, OAuthException):
+        app.logger.error("OAuthException: {}, {}".format(resp, resp.data))
+        abort(502)
     flickr_id = resp.get("user_nsid")
     oauth_token_secret = resp.get("oauth_token_secret")
     oauth_token = resp.get("oauth_token")

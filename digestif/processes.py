@@ -32,12 +32,16 @@ def flickr_metadata(stream):
     # make the call and get the response
     resp = flickr.get("", data=query, token=token)
     if isinstance(resp.data, str):
-        resp.data = json.loads(resp.data)
+        try:
+            resp.data = json.loads(resp.data)
+        except ValueError:
+            app.logger.warn("Could not decode json: {}".format(resp.data))
+            return "[flickr error]"
     if resp.status == 200 and resp.data["stat"] == "ok":
         return resp.data["person"]["realname"]["_content"] or resp.data["person"]["username"]
     app.logger.error("Error in flickr_metadata, {}, {}".format(resp.status, resp.data))
-    abort(502)
-    return "Error"
+    #abort(502)
+    return "[flickr error]"
     
 def instagram_metadata(stream, username=False):
     token = (stream.oauth_token, stream.oauth_token_secret)
@@ -51,8 +55,8 @@ def instagram_metadata(stream, username=False):
             return resp.data["data"]["username"]
         return resp.data["data"]["full_name"] or resp.data["data"]["username"]
     app.logger.error("Error in instagram_metadata, {}, {}".format(resp.status, resp.data))
-    abort(502)    
-    return "Error"
+    #abort(502)    
+    return "[instagram error]"
 
 def retrieve_photos(stream, since=None):
     # if since date not specified we'll default to last time we checked
