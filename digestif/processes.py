@@ -264,7 +264,7 @@ def send_digest(digest, env):
     title = "A new photo digest from {}".format(metadata(stream))
     text_email =  "Digestif\n\nYou have a new digest of photographs to view from {}. View this email as HTML or visit http://digestif.me/digest/{}\n\nWant to change the delivery rate? Adjust your subscription at http://digestif.me{}\n\n Digestif converts your photostream into an email digest. Your friends and family subscribe and decide how frequently they want digests delivered. That way, when you post new photographs your friends and family are notified on their terms.".format(metadata(stream), digest_encoded, stream.subscribe_url())
 
-    if mandrill_send(user.email, title, text_email, html_email):
+    if sendgrid_send(user.email, title, text_email, html_email):
         digest.delivered = True
         app.logger.info("Digest delivered to {}".format(user.email))
         db.session.commit()
