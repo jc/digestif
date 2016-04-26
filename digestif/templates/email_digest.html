@@ -1,6 +1,6 @@
 {% extends "email_layout.html" %}
 {% block body %}
-<p>Here is your latest digest of photographs by <a href="{{ stream.remote_url() }}">{{ stream|stream2name }}</a>. Having trouble viewing this email? <a href="http://digestif.me/digest/{{ digest_encoded }}">View on the web</a>.</p>
+<p>Here is your latest digest of photographs by <a href="{{ stream.remote_url() }}">{{ stream|stream2name }}</a>. Having trouble viewing this email? <a href="http://digestif.me/digest/{{ digest_encoded }}">View all {{ entries|length }} photographs on the web</a>.</p>
 {% for entry in entries[:max_images] %}
 {% if entry.title %}
 <h4>{{ entry.title|safe }}</h4>
@@ -11,7 +11,7 @@
     <source src="{{ entry|videosrc(size="site") }}" type="video/mp4" />
     <a href="{{ entry|permalink(email=email, digest_encoded=digest_encoded) }}"><img src="http://digestif.me/static/play.png" /></a>
   </video>
-{% else %}<a href="{{ entry|permalink(email=email, digest_encoded=digest_encoded) }}"><img src="{{ entry|imgurl(email=email) }}" /></a>{% endif %}</p>
+{% else %}<img src="{{ entry|imgurl(email=email) }}" />{% endif %}</p>
 {% if entry.description %}
 <p>{{ entry.description|nl2br|safe }}</p>
 {% endif %}
