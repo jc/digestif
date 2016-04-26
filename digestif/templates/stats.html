@@ -14,11 +14,15 @@
 
 {% if subscribers[0] is defined %}
 <p>Subscriber list:</p>
-<ul>
+
+<table>
 {% for sub in subscribers %}
-<li><code>{{ sub.user.email }}</code> ({{ digest_counts[sub] }} {% if digest_counts[sub] == 1 %}digest{% else %}digests{% endif %} received)</li>
+<tr><td><code>{{ sub.user.email }}</code></td>
+<td>{{sub.frequency|days2words}}</td>
+  <td>{{ digest_counts[sub] }} {% if digest_counts[sub] == 1 %}digest{% else %}digests{% endif %}</td>
+</tr>
 {% endfor %}
-</ul>
+</table>
 {% else %}
 <p>You don't have any subscribers yet! Tell people your subscription link.</p>
 {% endif %}

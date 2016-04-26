@@ -199,7 +199,7 @@ def about():
 def stats_auth():
     service = request.args.get("service", None)
     if service == str(FLICKR):
-        return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', stats="1"))
+        return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', stats="1"), perms="read")
     elif service == str(INSTAGRAM):
         return instagram_oauth.authorize(callback="http://digestif.me"+url_for('handle_instagram_authorization', stats="1"))
     elif session.get('digestif'):
