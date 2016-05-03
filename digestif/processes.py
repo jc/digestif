@@ -5,7 +5,6 @@ import json
 from flask import render_template, abort
 import premailer
 import sendgrid
-import mandrill
 
 from digestif import flickr_oauth as flickr
 from digestif import instagram_oauth as instagram
@@ -275,7 +274,7 @@ def send_welcome(subscription, stream, env):
     title = "Welcome to {}'s photo digests!".format(metadata(stream))
     text_email = "Welcome to Digestif!\n\nWe will start sending digests of {}'s photographs. Add us to your contact list to avoid our emails being marked as spam.\n\nIf you received this email by mistake, visit http://digestif.me{} to adjust your subscription.".format(metadata(stream),  stream.subscribe_url())
 
-    if mandrill_send(user.email, title, text_email, html_email):
+    if sendgrid_send(user.email, title, text_email, html_email):
         app.logger.info("Subscription welcome delivered to {}".format(user.email))
         return True
     else:
@@ -287,7 +286,7 @@ def send_stream(user, stream, env):
     html_email = premailer.transform(html, base_url="http://digestif.me")
     title = "Share your photographs with friends and family"
     text_email = "Welcome to Digestif!\n\nWe will make your photographs into great email digests.\n\nTell your friends and family to visit http://digestif.me{} to subscribe. You can keep track of your subscriber stats by visiting http://digestif.me/stats".format(stream.subscribe_url())
-    if mandrill_send(user.email, title, text_email, html_email):
+    if sendgrid_send(user.email, title, text_email, html_email):
         app.logger.info("Stream welcome delivered to {}".format(user.email))
         return True
     else:
@@ -298,19 +297,3 @@ def sendgrid_send(to_address, title, text, html):
     message = sendgrid.Message(("digests@digestif.me", "Digestif"), title, text, html)
     message.add_to(to_address)
     return s.web.send(message)
-    
-def mandrill_send(to_address, title, text, html):
-    m = mandrill.Mandrill(keys.MANDRILL)
-    #m = mandrill.Mandrill(keys.MANDRILL_TEST) # test account
-    msg = {"from_email": "digests@digestif.me",
-           "from_name" : "Digestif",
-           "to": [{"email" : to_address}],
-           "subject": title,
-           "text" : text,
-           "html" : html}
-    result = m.messages.send(msg)
-    if result[0]["status"] == "sent":
-        return True
-    else:
-        app.logger.info("Failed to send email: {}".format(result))
-        return False
