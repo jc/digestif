@@ -122,11 +122,9 @@ def flickr_retrieve_photos(stream, since):
     # do the page dance!
     while resp.status == 200 and more and resp.data["stat"] == "ok":
         for photo in resp.data["photos"]["photo"]:
-            if photo["ispublic"] == "0":
-                continue
-            if "digestif:ignore=true" in photo["tags"]:
-                continue
-            flickrphoto = create_flickr_photo(photo, stream)
+            photo_visible = str(photo["ispublic"]) == "1" or str(photo["isfriend"]) == "1" or str(photo["isfamily"]) == "1"
+            if photo_visible and "digestif:ignore=true" not in photo["tags"]:
+                flickrphoto = create_flickr_photo(photo, stream)
         query["page"] = page + 1
         if page >= pages:
             more = False
