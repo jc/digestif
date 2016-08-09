@@ -3,20 +3,19 @@
 
 {% block body %}
 <div class="text power">
-<p>Digestif converts your Flickr or Instagram photostream into an
-email digest of photographs delivered to your friends and family as
-frequently (or infrequently) as they decide.</p>
 
-<p>It is simple to setup your own Digestif. Just tell us your email address and
-whether you use <span class="power social" style="font-size:
-1.6em;">&#62211;</span> Flickr or <span class="social power" style="font-size:
-1.6em;">&#62253;</span> Instagram. We'll create a subscription page for your
-photostream.</p>
+
+<p>Digestif converts your Flickr photostream into an email digest of photographs
+delivered to your friends and family on their terms. They decide how frequently
+(or infrequently) they want photographs.</p>
+
+<p>To setup your own Digestif just tell us your email address and we'll create
+an email sign-up page for your photostream.</p>
 
 <div class="narrow">
 <form id="create" method="POST" action="{{ url_for("landing") }}">
 {{ form.email(placeholder="Your email address", type="email", required="true") }}
-<span service="flickr" class="service social inactive">&#62211;</span> <span service="instagram" class="service social inactive">&#62253;</span> <button class="action">Create</button>
+<button class="action">Create</button>
 <div id="email-suggestion" style="display:none">
 Did you mean <a class="suggested-email"></a>?
 </div>
@@ -30,22 +29,12 @@ Did you mean <a class="suggested-email"></a>?
 <a href="http://digestif.me/digest/Lk"><img src="/static/digestif-mail.jpg"/></a>
 </div>
 
-
-<script>
-    $(".service").tooltip();
-    $(".service").click(function () {
-       $("#stream").attr("value", $(this).attr("service"));
-       $(".service").removeClass("active").addClass("inactive");
-       $(this).addClass("active").removeClass("inactive");
-    });
-</script>
-
 <script src="{{ url_for('static', filename="mailcheck.min.js", _external=True) }}"></script>
 
 <script>
 $('#email').on('blur', function() {
   $(this).mailcheck({
-    suggested: function(element, suggestion) {     
+    suggested: function(element, suggestion) {
       $('#email-suggestion a').html(suggestion.full);
       $('#email-suggestion').slideDown();
       $('#email-suggestion a').on('click', function() {
