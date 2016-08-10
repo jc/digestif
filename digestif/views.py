@@ -7,7 +7,7 @@ from flask_oauthlib.client import OAuthException
 
 from jinja2 import evalcontextfilter, Markup
 
-import premailer 
+import premailer
 
 from digestif import app
 from digestif import flickr_oauth, instagram_oauth
@@ -201,7 +201,7 @@ def stats_auth():
     if service == str(FLICKR):
         return flickr_oauth.authorize(callback=url_for('handle_flickr_authorization', stats="1"), perms="read")
     elif service == str(INSTAGRAM):
-        return instagram_oauth.authorize(callback="http://digestif.me"+url_for('handle_instagram_authorization', stats="1"))
+        return instagram_oauth.authorize(callback="http://digestif.me"+url_for('handle_instagram_authorization', stats="1"), scope="basic")
     elif session.get('digestif'):
         oauth_token = session.get("digestif")["a"]
         other_stream = Stream.query.filter_by(oauth_token=oauth_token).first_or_404()
@@ -367,4 +367,3 @@ def stream2service_filter(stream):
         return "Instagram"
     else:
         return "Unknown service"
-    
