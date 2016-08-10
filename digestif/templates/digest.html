@@ -21,7 +21,7 @@
 
 {% for entry in entries %}
   <div class="image">
-    <div class="text dateline"><p>{{entry.date_taken|datetime}}</p></div>
+    <div class="text dateline"><p>{{entry.date_taken|datetime}}&nbsp; <a href="{{ entry|permalink(digest_encoded=digest_encoded) }}" style="text-decoration: none;">&#9733;</a></p></div>
     <div class="photo">
       {% if entry.video %}
       <video width="800" poster="{{ entry|imgurl }}" controls>
@@ -29,7 +29,7 @@
         <a href="{{ entry|permalink(digest_encoded=digest_encoded) }}"><img src="/static/play.png" /></a>
       </video>
       {% else %}
-      <a href="{{ entry|permalink(digest_encoded=digest_encoded) }}"><img src="{{ entry|imgurl }}" /></a>
+      <img src="{{ entry|imgurl }}" /></a>
       {% endif %}
     </div>
     <div class="text caption">
@@ -43,5 +43,3 @@
   </div>
 {% endfor %}
 {% endblock %}
-
-
