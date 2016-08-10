@@ -47,7 +47,7 @@ button.action {
     margin-top: 15px;
     padding: 8px;
     font-family: 'Droid Serif', Georgia, Palatino, 'Palatino Linotype', Times, 'Times New Roman', serif;
-    font-size: 22px;   
+    font-size: 22px;
     border: none;
     border-radius: 5px;
     background: #5bb75b;
@@ -62,7 +62,7 @@ button.negative {
 
 .text {
     margin: auto;
-    width: 640px;
+    width: 800px;
 }
 
 .narrow {
@@ -391,5 +391,5 @@ button.close {
 
 
 .address {
-  
+
 }
