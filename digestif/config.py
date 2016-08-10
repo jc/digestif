@@ -10,7 +10,6 @@ class Config(object):
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = "mysql://{}:{}@localhost/digestif".format(keys.DB_USERNAME, keys.DB_PASSWORD)
-    SERVER_NAME = "digestif.me"
 
 class DevelopmentConfig(Config):
     DEBUG = True
