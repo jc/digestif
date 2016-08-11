@@ -41,20 +41,20 @@ def flickr_metadata(stream):
     app.logger.error("Error in flickr_metadata, {}, {}".format(resp.status, resp.data))
     #abort(502)
     return "[flickr error]"
-    
+
 def instagram_metadata(stream, username=False):
     token = (stream.oauth_token, stream.oauth_token_secret)
     # build the query
     query = "users/{}".format(stream.foreign_key)
     # make the call and get the response
     resp = instagram.get(query, token=token, data={"access_token" : token[0]})
-    
+
     if resp.status == 200:
         if username:
             return resp.data["data"]["username"]
         return resp.data["data"]["full_name"] or resp.data["data"]["username"]
     app.logger.error("Error in instagram_metadata, {}, {}".format(resp.status, resp.data))
-    #abort(502)    
+    #abort(502)
     return "[instagram error]"
 
 def retrieve_photos(stream, since=None):
@@ -145,7 +145,7 @@ def flickr_retrieve_photos(stream, since):
         db.session.add(stream)
     db.session.commit()
     return resp.status
-    
+
 def create_instagram_photo(photo, stream):
     id = photo["id"]
     date_taken = datetime.fromtimestamp(float(photo["created_time"]))
@@ -166,7 +166,7 @@ def create_instagram_photo(photo, stream):
     instagramphoto = InstagramPhoto.query.filter_by(foreign_key=id).first()
     if not instagramphoto:
         instagramphoto = InstagramPhoto(foreign_key=id, stream_id=stream.id,
-                                        date_taken=date_taken, 
+                                        date_taken=date_taken,
                                         date_uploaded=date_taken,
                                         title=title,
                                         description=description, video=video,
@@ -181,7 +181,7 @@ def create_instagram_photo(photo, stream):
         # already present
         pass
     return instagramphoto
-    
+
 def create_flickr_photo(photo, stream):
     id = photo["id"]
     farm = photo["farm"]
@@ -260,8 +260,8 @@ def send_digest(digest, env):
     html_email = premailer.transform(html, base_url="http://digestif.me")
     title = "A new photo digest from {}".format(metadata(stream))
     text_email =  "Digestif\n\nYou have a new digest of photographs to view from {}. View this email as HTML or visit http://digestif.me/digest/{}\n\nWant to change the delivery rate? Adjust your subscription at http://digestif.me{}\n\n Digestif converts your photostream into an email digest. Your friends and family subscribe and decide how frequently they want digests delivered. That way, when you post new photographs your friends and family are notified on their terms.".format(metadata(stream), digest_encoded, stream.subscribe_url())
-
-    if sendgrid_send(user.email, title, text_email, html_email):
+    category = "digest:stream:{}".format(stream.id)
+    if sendgrid_send(user.email, title, text_email, html_email, categories=category):
         digest.delivered = True
         app.logger.info("Digest delivered to {}".format(user.email))
         db.session.commit()
@@ -273,8 +273,8 @@ def send_welcome(subscription, stream, env):
     html_email = premailer.transform(html, base_url="http://digestif.me")
     title = "Welcome to {}'s photo digests!".format(metadata(stream))
     text_email = "Welcome to Digestif!\n\nWe will start sending digests of {}'s photographs. Add us to your contact list to avoid our emails being marked as spam.\n\nIf you received this email by mistake, visit http://digestif.me{} to adjust your subscription.".format(metadata(stream),  stream.subscribe_url())
-
-    if sendgrid_send(user.email, title, text_email, html_email):
+    category = "subscribe:stream:{}".format(stream.id)
+    if sendgrid_send(user.email, title, text_email, html_email, categories=category):
         app.logger.info("Subscription welcome delivered to {}".format(user.email))
         return True
     else:
@@ -286,14 +286,17 @@ def send_stream(user, stream, env):
     html_email = premailer.transform(html, base_url="http://digestif.me")
     title = "Share your photographs with friends and family"
     text_email = "Welcome to Digestif!\n\nWe will make your photographs into great email digests.\n\nTell your friends and family to visit http://digestif.me{} to subscribe. You can keep track of your subscriber stats by visiting http://digestif.me/stats".format(stream.subscribe_url())
-    if sendgrid_send(user.email, title, text_email, html_email):
+    category = "welcome:stream:{}".format(stream.id)    
+    if sendgrid_send(user.email, title, text_email, html_email, categories=category):
         app.logger.info("Stream welcome delivered to {}".format(user.email))
         return True
     else:
         return False
-        
-def sendgrid_send(to_address, title, text, html):
+
+def sendgrid_send(to_address, title, text, html, categories=[]):
     s = sendgrid.Sendgrid(keys.SENDGRID_USER, keys.SENDGRID, secure=True)
+    unique_args = {"category": categories}
     message = sendgrid.Message(("digests@digestif.me", "Digestif"), title, text, html)
     message.add_to(to_address)
+    message.add_category(categories)
     return s.web.send(message)
