@@ -28,7 +28,7 @@
         <source src="{{ entry|videosrc }}" type="video/mp4" />
       </video>
       {% else %}
-      {{ entry|imgtag|safe}}
+      {{ entry|imgtag|safe }}
       {% endif %}
     </div>
     <div class="text caption">
@@ -41,4 +41,5 @@
     </div>
   </div>
 {% endfor %}
+
 {% endblock %}

@@ -308,13 +308,13 @@ def imgtag_filter(photo, email=False):
         size_set = ['z', 'c', 'b'] # 'h', 'k'
         width_set = ['640w', '800w', '1024w'] # '1600w', '2048w'
         image_data = ['<img', 'src=', "\"{}\"".format(imgurl_size(photo, 'c')), 'sizes="calc(100vw - 120px)"', 'srcset="']
+        image_data = ['<img', 'src=', "\"{}\"".format(imgurl_size(photo, 'c')), 'sizes="(max-width: 1144px) calc(100vw - 120px), 1024px"', 'srcset="']
         srcset = []
         for i in xrange(len(size_set)):
             size = size_set[i]
             width = width_set[i]
             srcset.append("{} {}".format(imgurl_size(photo, size), width))
-        image_data.append(",".join(srcset))
-        image_data.append('"/>')
+        image_data.append("{}\"/>".format(", ".join(srcset)))
         return " ".join(image_data)
     elif photo.stream.service == INSTAGRAM:
         return "<img src=\"{}\"/>".format(photo.standard_resolution)
