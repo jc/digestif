@@ -150,6 +150,7 @@ h1 a, h1 a:link, h1 a:visited {
     margin-bottom: 1em;
 }
 .photo img {
+    flex: none;
     max-width: 1024px;
     max-height: 1000px;
 }
