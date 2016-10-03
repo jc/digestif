@@ -283,6 +283,13 @@ def flash_errors(form):
         for error in errors:
             flash(error, "error")
 
+
+################
+#### helpers ###
+################
+def imgurl_size(photo, size):
+    return "http://farm{}.staticflickr.com/{}/{}_{}_{}.jpg".format(photo.farm, photo.server, photo.foreign_key, photo.secret, size)
+
 #################
 #### filters ####
 #################
@@ -295,6 +302,25 @@ def videosrc_filter(video, size="hd"):
     else:
         return ""
 
+@app.template_filter("imgtag")
+def imgtag_filter(photo, email=False):
+    if photo.stream.service == FLICKR:
+        size_set = ['z', 'c', 'b'] # 'h', 'k'
+        width_set = ['640w', '800w', '1024w'] # '1600w', '2048w'
+        image_data = ['<img', 'src=', "\"{}\"".format(imgurl_size(photo, 'c')), 'sizes="calc(100vw - 120px)"', 'srcset="']
+        srcset = []
+        for i in xrange(len(size_set)):
+            size = size_set[i]
+            width = width_set[i]
+            srcset.append("{} {}".format(imgurl_size(photo, size), width))
+        image_data.append(",".join(srcset))
+        image_data.append('"/>')
+        return " ".join(image_data)
+    elif photo.stream.service == INSTAGRAM:
+        return "<img src=\"{}\"/>".format(photo.standard_resolution)
+    else:
+        return ""
+
 @app.template_filter("imgurl")
 def imgurl_filter(photo, email=False):
     if photo.stream.service == FLICKR:
@@ -304,7 +330,7 @@ def imgurl_filter(photo, email=False):
         size = "z"
         if photo.date_uploaded >= datetime(2012, 03, 01):
             size = "c"
-        return "http://farm{}.staticflickr.com/{}/{}_{}_{}.jpg".format(photo.farm, photo.server, photo.foreign_key, photo.secret, size)
+        return imgurl_size(photo, size)
     elif photo.stream.service == INSTAGRAM:
         if email:
             return photo.low_resolution

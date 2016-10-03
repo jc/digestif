@@ -26,10 +26,9 @@
       {% if entry.video %}
       <video width="800" poster="{{ entry|imgurl }}" controls>
         <source src="{{ entry|videosrc }}" type="video/mp4" />
-        <a href="{{ entry|permalink(digest_encoded=digest_encoded) }}"><img src="/static/play.png" /></a>
       </video>
       {% else %}
-      <img src="{{ entry|imgurl }}" /></a>
+      {{ entry|imgtag|safe}}
       {% endif %}
     </div>
     <div class="text caption">

@@ -143,13 +143,15 @@ h1 a, h1 a:link, h1 a:visited {
     margin-bottom: 2em;
 }
 
-.image img {
-    border: 0;
-}
-
 .photo {
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
     margin-bottom: 1em;
+}
+.photo img {
+    max-width: 1024px;
+    max-height: 1000px;
 }
 
 .image .dateline {
