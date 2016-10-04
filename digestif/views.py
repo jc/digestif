@@ -288,6 +288,10 @@ def flash_errors(form):
 #### helpers ###
 ################
 def imgurl_size(photo, size):
+    if size == 'h':
+        return photo.url_h
+    if size == 'k':
+        return photo.url_k
     return "http://farm{}.staticflickr.com/{}/{}_{}_{}.jpg".format(photo.farm, photo.server, photo.foreign_key, photo.secret, size)
 
 #################
@@ -305,15 +309,16 @@ def videosrc_filter(video, size="hd"):
 @app.template_filter("imgtag")
 def imgtag_filter(photo, email=False):
     if photo.stream.service == FLICKR:
-        size_set = ['z', 'c', 'b'] # 'h', 'k'
-        width_set = ['640w', '800w', '1024w'] # '1600w', '2048w'
-        image_data = ['<img', 'src=', "\"{}\"".format(imgurl_size(photo, 'c')), 'sizes="calc(100vw - 120px)"', 'srcset="']
+        size_set = ['z', 'c', 'b', 'h', 'k']
+        width_set = ['640w', '800w', '1024w','1600w', '2048w']
         image_data = ['<img', 'src=', "\"{}\"".format(imgurl_size(photo, 'c')), 'sizes="(max-width: 1144px) calc(100vw - 120px), 1024px"', 'srcset="']
         srcset = []
         for i in xrange(len(size_set)):
             size = size_set[i]
             width = width_set[i]
-            srcset.append("{} {}".format(imgurl_size(photo, size), width))
+            src = imgurl_size(photo, size)
+            if src != None:
+                srcset.append("{} {}".format(src, width))
         image_data.append("{}\"/>".format(", ".join(srcset)))
         return " ".join(image_data)
     elif photo.stream.service == INSTAGRAM:

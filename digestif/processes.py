@@ -102,7 +102,7 @@ def flickr_retrieve_photos(stream, since):
     # build the query
     query = {"method" : "flickr.people.getPhotos",
              "user_id" : stream.foreign_key,
-             "extras" : "date_upload, date_taken, description, media, tags",
+             "extras" : "date_upload, date_taken, description, media, tags, url_h, url_k",
              "format" : "json",
              "nojsoncallback" : 1,
              "min_upload_date" :  (since - datetime(1970, 1, 1)).total_seconds()}
@@ -194,6 +194,8 @@ def create_flickr_photo(photo, stream):
     flickrphoto = None
     flickrphoto = FlickrPhoto.query.filter_by(foreign_key=id).first()
     video = False
+    url_h = photo["url_h"] if "url_h" in photo else None
+    url_k = photo["url_k"] if "url_k" in photo else None
     if "media" in photo and photo["media"] == "video":
         video = True
     if not flickrphoto:
@@ -201,14 +203,24 @@ def create_flickr_photo(photo, stream):
                                   farm=farm, server=server, secret=secret,
                                   title=title, description=description,
                                   date_uploaded=date_uploaded,
-                                  date_taken=date_taken, video=video)
+                                  date_taken=date_taken, video=video, 
+                                  url_h=url_h, url_k=url_k)
         db.session.add(flickrphoto)
         stream.last_updated = datetime.now()
         db.session.commit()
         app.logger.info("Added Flickr photo {}".format(id))
     else:
-        # already present
-        pass
+        change = False
+        if flickrphoto.url_h == None and url_h != None:
+            flickrphoto.url_h = url_h
+            change = True
+        if flickrphoto.url_k == None and url_k != None:
+            flickrphoto.url_k = url_k
+            change = True
+        if change:
+            db.session.add(flickrphoto)
+            db.session.commit()
+            app.logger.info("Updated Flickr photo {}".format(id))
     return flickrphoto
 
 def create_digest(subscription, previous_dt=None, today_dt=None):
@@ -286,7 +298,7 @@ def send_stream(user, stream, env):
     html_email = premailer.transform(html, base_url="http://digestif.me")
     title = "Share your photographs with friends and family"
     text_email = "Welcome to Digestif!\n\nWe will make your photographs into great email digests.\n\nTell your friends and family to visit http://digestif.me{} to subscribe. You can keep track of your subscriber stats by visiting http://digestif.me/stats".format(stream.subscribe_url())
-    category = "welcome:stream:{}".format(stream.id)    
+    category = "welcome:stream:{}".format(stream.id)
     if sendgrid_send(user.email, title, text_email, html_email, categories=category):
         app.logger.info("Stream welcome delivered to {}".format(user.email))
         return True
@@ -294,9 +306,21 @@ def send_stream(user, stream, env):
         return False
 
 def sendgrid_send(to_address, title, text, html, categories=[]):
-    s = sendgrid.Sendgrid(keys.SENDGRID_USER, keys.SENDGRID, secure=True)
-    unique_args = {"category": categories}
-    message = sendgrid.Message(("digests@digestif.me", "Digestif"), title, text, html)
-    message.add_to(to_address)
-    message.add_category(categories)
-    return s.web.send(message)
+    sg = sendgrid.SendGridAPIClient(apikey=keys.SENDGRID_API_KEY)
+    mail = sendgrid.helpers.mail.Mail()
+    mail.set_from(sendgrid.helpers.mail.Email("digestif@digestif.me", "Digestif"))
+    mail.set_to(sendgrid.helpers.mail.Email(to_address))
+    mail.set_subject(title)
+    mail.add_content(sendgrid.helpers.mail.Content("text/plain", text))
+    mail.add_content(sendgrid.helpers.mail.Content("text/html", html))
+    if isinstance(categories, (str, unicode)):
+        mail.add_category(sendgrid.helpers.mail.Category(categories))
+    else:
+        (mail.add_category(sendgrid.helpers.mail.Category(category)) for category in categories)
+    data = mail.get()
+    response = sg.client.mail.send.post(resquest_body=data)
+    if response.code == 200 or response.code == 202:
+        return True
+    else:
+        app.logger.error("Sending failed: {} \t {}".format(response.code, response.body))
+        return False

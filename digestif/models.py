@@ -89,6 +89,8 @@ class FlickrPhoto(Base, db.Model):
     foreign_key = db.Column(db.String(255))
     video = db.Column(db.Boolean)
     stream = db.relationship("Stream")
+    url_h = db.Column(db.String(255))
+    url_k = db.Column(db.String(255))
     
 class InstagramPhoto(Base, db.Model):
     id = db.Column(db.Integer, primary_key=True)
