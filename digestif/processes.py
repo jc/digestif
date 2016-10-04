@@ -306,21 +306,9 @@ def send_stream(user, stream, env):
         return False
 
 def sendgrid_send(to_address, title, text, html, categories=[]):
-    sg = sendgrid.SendGridAPIClient(apikey=keys.SENDGRID_API_KEY)
-    mail = sendgrid.helpers.mail.Mail()
-    mail.set_from(sendgrid.helpers.mail.Email("digestif@digestif.me", "Digestif"))
-    mail.set_to(sendgrid.helpers.mail.Email(to_address))
-    mail.set_subject(title)
-    mail.add_content(sendgrid.helpers.mail.Content("text/plain", text))
-    mail.add_content(sendgrid.helpers.mail.Content("text/html", html))
-    if isinstance(categories, (str, unicode)):
-        mail.add_category(sendgrid.helpers.mail.Category(categories))
-    else:
-        (mail.add_category(sendgrid.helpers.mail.Category(category)) for category in categories)
-    data = mail.get()
-    response = sg.client.mail.send.post(resquest_body=data)
-    if response.code == 200 or response.code == 202:
-        return True
-    else:
-        app.logger.error("Sending failed: {} \t {}".format(response.code, response.body))
-        return False
+    s = sendgrid.Sendgrid(keys.SENDGRID_USER, keys.SENDGRID, secure=True)
+    unique_args = {"category": categories}
+    message = sendgrid.Message(("digests@digestif.me", "Digestif"), title, text, html)
+    message.add_to(to_address)
+    message.add_category(categories)
+    return s.web.send(message)
